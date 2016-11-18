@@ -1,0 +1,43 @@
+========================================
+Reference for level files
+========================================
+
+Levels are authored in a MIDI file that is in sync with the song. The MIDI is read by the game to provide all the music-based events for the level.
+
+The following is a specification of which notes are for what in the MIDI file.
+
+========================================
+Game objects (things to hit)
+========================================
+
+DIFFICULTY 1: 60
+
+For each difficulty:
+11	-
+10	-
+9	-
+8	TOP tap
+7	TOP hold
+6	TOP bomb
+5	MID tap
+4	MID hold
+3	MID bomb
+2	BOT tap
+1	BOT hold
+0	BOT bomb
+
+========================================
+Signals (controls under the hood)
+========================================
+
+51	UPBEAT
+48	DOWNBEAT
+
+
+TODO:
+Ship Trail signal
+Bass Bump signal
+Streams - a freer path for the ship to follow to gain points
+	stream 		- a single pulse or the end of a continuous stream
+	stream_tie 	- a stream pulse that automatically connects to the next one, creating a path
+			- vertical position determined by note velocity 0-127
