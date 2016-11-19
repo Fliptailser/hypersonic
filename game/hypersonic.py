@@ -26,6 +26,8 @@ class MainWidget(BaseWidget) :
         # midi_lists['beats']: list of (beat_number, tick,  beat_length)
         # midi_lists['signals']: TODO
         # midi_lists['targets']: list of (type, lane, tick, length)
+        # midi_lists['tempo']: list of (time, tick)
+        print(midi_lists['tempo'])
         
     def on_key_down(self, keycode, modifiers):
         pass
