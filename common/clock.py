@@ -187,6 +187,75 @@ class Scheduler(object):
         return txt
 
 
+# Knows about a clock. Converts between time and ticks.
+class Conductor(object):
+   def __init__(self, clock) :
+      super(Conductor, self).__init__()
+      # stuff related to live-tempo setting
+      self.bpm = 80
+      self.offset = 0
+
+      self.tempo_map = None
+      self.clock = clock
+
+   def set_bpm(self, bpm) :
+      if self.tempo_map:
+         print 'Cannot set bpm. Conductor is using a tempo_map.'
+      else:
+         # ensure that current time/tick remains the same before & after tempo change
+         time = self.get_time()
+         tick = self.time_to_tick(time)
+
+         # using y = mx + b, y is tick, x = time, m is tempo slope, b is self.offset
+         # so b = y - mx:
+         self.bpm = bpm
+         self.offset = tick - (self.bpm / 60) * kTicksPerQuarter * time
+
+   def get_bpm(self) :
+      if self.tempo_map:
+         # get approximate tempo by asking tempo map for 2 points:
+         time1 = self.get_time()
+         time2 = time1 + 1
+         tick1 = self.tempo_map.time_to_tick(time1)
+         tick2 = self.tempo_map.time_to_tick(time2)
+
+         slope = (tick2 - tick1) / (time2 - time1)
+         bpm = slope * 60.0 / kTicksPerQuarter
+         return bpm
+
+      else:
+         return self.bpm
+
+   def set_tempo_map(self, tempo_map) :
+      self.tempo_map = tempo_map
+
+   def get_time(self) :
+      return self.clock.get_time()
+
+   def get_tick(self) :
+      sec = self.get_time()
+      return self.time_to_tick(sec)
+
+   def time_to_tick(self, time):
+      if self.tempo_map:
+         return self.tempo_map.time_to_tick(time)
+      else:
+         return int( (self.bpm / 60) * kTicksPerQuarter * time + self.offset )
+
+   def tick_to_time(self, tick):
+      if self.tempo_map:
+         return self.tempo_map.tick_to_time(tick)
+      else:
+         return 
+      
+   def now_str(self):
+      time = self.get_time()
+      tick = self.get_tick()
+      beat = float(tick) / kTicksPerQuarter
+      txt = "time:%.2f\ntick:%d\nbeat:%.2f" % (time, tick, beat)
+      return txt
+
+
 # AudioScheduler is a Scheduler and Clock built into one class.
 # It is ALSO a Generator. For it to work, it must be inserted into
 # and Audio generator chain.

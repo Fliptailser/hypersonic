@@ -2,10 +2,10 @@
 Fly through space at the speed of music.
 
 ##Checklist
-- [ ] Find first song audio
-- [ ] Label first song audio
+- [x] Find first song audio
+- [x] Label first song audio
 - [ ] Find images for graphics
-- [ ] Reading MIDI file for level generation
+- [x] Reading MIDI file for level generation
 - [ ] Level generation
 - [ ] Beat Matching
 - [ ] Note/arpeggio generation
