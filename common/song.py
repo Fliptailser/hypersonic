@@ -7,9 +7,10 @@
 # Released under the MIT License (http://opensource.org/licenses/MIT)
 #
 #####################################################################
-
+from audio import kSampleRate
 from clock import *
 from wavegen import *
+from wavesrc import *
 
 # defines a thing that can play and will be managed by class Song
 class Track(object):
@@ -31,14 +32,41 @@ class Track(object):
       pass
 
 
+# audio track - very simple wrapper around wavegen
+class AudioTrack(Track):
+   def __init__(self, mixer, filepath):
+      super(AudioTrack, self).__init__()
+      self.wavegen = WaveGenerator(WaveFile(filepath))
+      self.wavegen.pause()
+      mixer.add(self.wavegen)
+
+   def start(self):
+      print 'audio start'
+      self.wavegen.start()
+
+   def stop(self):
+      print 'audio stop'
+      self.wavegen.pause()
+
+   def set_time(self, time):
+      self.wavegen.set_pos(time * kSampleRate)
+
+   def set_mute(self, mute):
+      if mute:
+         self.wavegen.set_gain(0)
+      else:
+         self.wavegen.set_gain(1)
+
+
 # groups together a clock, conductor, scheduler, and tracks, along with
 # shuttle controls
 class Song(object):
-   def __init__(self):
+   def __init__(self, tempo_map=None):
       super(Song, self).__init__()
       self.clock = Clock()
       self.cond = Conductor(self.clock)
-      self.sched = Scheduler(self.cond)
+      self.cond.set_tempo_map(tempo_map)
+      self.sched = Scheduler(self.clock, self.cond.tempo_map)
       self.tracks = []
 
    def on_update(self):

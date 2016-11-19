@@ -1,6 +1,8 @@
 from common.audio import *
+from common.audiotrack import *
 from common.song import *
 from common.clock import *
+from common.mixer import *
 
 
 class AudioController(object):
@@ -16,15 +18,15 @@ class AudioController(object):
         self.sound_effect_path = 'TODO'
 
         # create Audio components
-        self.song = Song()
+        self.mixer = Mixer()
         self.tempo_map = TempoMap(data=song_tempo)
-        self.song.cond.set_tempo_map(self.tempo_map)
+        self.song = Song(tempo_map=self.tempo_map)
 
         # add track
-        self.song_track = AudioTrack(song_path)
+        self.song_track = AudioTrack(self.mixer, song_path)
         self.song.add_track(self.song_track)
 
-        self.audio.set_generator(self.song)
+        self.audio.set_generator(self.mixer)
 
 
     # start / stop the song
@@ -44,11 +46,3 @@ class AudioController(object):
     # needed to update audio
     def on_update(self):
         self.audio.on_update()
-
-
-def midi_beat_to_tempo_beat(beat_list):
-    """
-    Converts list of (beat_number, tick,  beat_length)
-    => (time, tick)
-    """
-    pass
