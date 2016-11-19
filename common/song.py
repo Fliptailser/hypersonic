@@ -42,7 +42,7 @@ class AudioTrack(Track):
 
    def start(self):
       print 'audio start'
-      self.wavegen.start()
+      self.wavegen.play()
 
    def stop(self):
       print 'audio stop'
@@ -64,6 +64,7 @@ class Song(object):
    def __init__(self, tempo_map=None):
       super(Song, self).__init__()
       self.clock = Clock()
+      self.clock.stop()
       self.cond = Conductor(self.clock)
       self.cond.set_tempo_map(tempo_map)
       self.sched = Scheduler(self.clock, self.cond.tempo_map)

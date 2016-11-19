@@ -32,9 +32,12 @@ class MainWidget(BaseWidget) :
         # midi_lists['tempo']: list of (time, tick)
 
         self.audio_ctrl = AudioController(SONG_PATH, midi_lists['tempo'])
+        print midi_lists['targets']
         
     def on_key_down(self, keycode, modifiers):
-        pass
+    	
+        if keycode[1] == 'spacebar':
+        	self.audio_ctrl.toggle()
         
     def on_key_up(self, keycode):
         pass
