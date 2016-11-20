@@ -27,7 +27,9 @@ class AudioController(object):
 
         self.audio.set_generator(self.mixer)
 
-
+    def get_time(self):
+        return self.song_track.get_time()
+        
     # start / stop the song
     def toggle(self):
         self.song.toggle()

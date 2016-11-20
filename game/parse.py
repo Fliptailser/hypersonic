@@ -92,7 +92,7 @@ def parse_MIDI_chart(song_name):
                 # process the finished MIDI note
                 callback, args = MIDI_KEY[message.note]
                 on_message, on_time = open_messages[message.note]
-                callback(structs, ticks, on_message, ticks - on_time, args)
+                callback(structs, on_time, on_message, ticks - on_time, args)
                 del open_messages[message.note]
     
     # cap off the tempo map (extrapolate to the end of the track using the final tempo)
