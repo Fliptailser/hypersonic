@@ -38,7 +38,6 @@ class BeatLine(InstructionGroup):
         x = NOW_X + tick * PIXELS_PER_TICK
         width = 3 if count == 1 else 1
         self.add(Line(width=width, points=[x, 360 - 80 - 160, x, 360 + 80 + 160]))
-        
 
 class Laser(InstructionGroup):
 
@@ -164,11 +163,6 @@ class GameDisplay(InstructionGroup):
         
         self.scroll.x = - self.tempo_map.time_to_tick(time) * PIXELS_PER_TICK
      
-        
-
-
-
-
 
 
 
