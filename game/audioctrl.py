@@ -42,6 +42,12 @@ class AudioController(object):
         # TODO maybe an explosion sound
         pass
 
+    def time_to_tick(self, time) :
+        return self.tempo_map.time_to_tick(time)
+
+    def tick_to_time(self, tick) :
+        return self.tempo_map.tick_to_time(tick)
+
     # needed to update audio
     def on_update(self):
         self.audio.on_update()
