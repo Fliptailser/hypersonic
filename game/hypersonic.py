@@ -8,6 +8,7 @@ from common.wavesrc import *
 from common.clock import *
 from common.gfxutil import *
 from kivy.core.window import Window
+from ConfigParser import ConfigParser
 
 import parse
 import display
@@ -67,6 +68,20 @@ class MainWidget(BaseWidget) :
         	self.player.release_aim()
         elif keycode[1] == 's' == self.last_key_held:
         	self.player.release_aim()
+
+    def on_touch_down(self, touch):
+        # TODO figure out how to update mouse config so doesn't make the circles on right clicks
+        print touch.button
+        if touch.button == 'left':
+            self.player.fire_laser()
+        else:
+            print "right click"
+            self.player.fire_rocket()
+
+    def on_touch_up(self, touch):
+
+        if touch.button == 'left':
+            self.player.release_laser()
         
     def on_update(self):
         self.audio_ctrl.on_update()

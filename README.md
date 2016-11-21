@@ -1,4 +1,4 @@
-# hypersonic
+# Hypersonic
 Fly through space at the speed of music.
 
 ## Checklist
@@ -6,7 +6,7 @@ Fly through space at the speed of music.
 - [x] Label first song audio
 - [ ] Find images for graphics
 - [x] Reading MIDI file for level generation
-- [ ] Level generation
+- [x] Level generation
 - [ ] Beat Matching
 - [ ] Note/arpeggio generation
 - [ ] User controls

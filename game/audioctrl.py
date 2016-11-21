@@ -29,6 +29,9 @@ class AudioController(object):
 
     def get_time(self):
         return self.song_track.get_time()
+
+    def get_tick(self):
+        return self.time_to_tick(self.song_track.get_time())
         
     # start / stop the song
     def toggle(self):

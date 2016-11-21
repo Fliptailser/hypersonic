@@ -138,9 +138,23 @@ class Target(InstructionGroup):
     def __init__(self, lane, tick, length):
         super(Target, self).__init__()
         self.lane = lane
+        self.tick = tick
         self.x = tick * PIXELS_PER_TICK
         self.y = self.vertical_pos_from_lane(lane)
         self.length = length
+        self.hit = False
+        self.destroyed_with = "laser"
+
+    def destroy(self):
+        pass
+
+    def in_tick_range(self, start_tick, end_tick):
+        # TODO see if should be just implemented by children
+        if self.destroyed_with == 'laser':
+            return start_tick < self.tick < end_tick
+        else:
+            # Bomb target TODO make in actual range
+            return start_tick < self.tick - self.length < end_tick
 
     def vertical_pos_from_lane(self, lane):
         if lane == 'top':
@@ -182,9 +196,12 @@ class Bomb(Target):
     def __init__(self, lane, tick, length):
         super(Bomb, self).__init__(lane, tick, length)
 
+        self.destroyed_with = "rocket"
+
         self.add(Color(rgb=[1, 0.5, 0.5], a=0.8))
         self.radius = 50
         self.x -= self.radius/4 # TODO refine this because IDK
+        self.x += self.length
         self.y -= self.radius/2
         self.shape = Ellipse(pos=(self.x, self.y), size=(self.radius, self.radius))
         self.add(self.shape)
@@ -274,6 +291,12 @@ class GameDisplay(InstructionGroup):
         self.beam.set_aim(aim)
         # TODO improve player y position
         self.beam.update_points(self.player.y)
+
+    def get_targets_in_range(self, start_tick, end_tick):
+        """
+        Gets all of the targets within a tick range
+        """
+        return filter(lambda x: x.in_tick_range(start_tick, end_tick), self.targets)
     
     def on_update(self, dt):
         pass
@@ -286,6 +309,5 @@ class GameDisplay(InstructionGroup):
         
         self.scroll.x = - self.tempo_map.time_to_tick(time) * PIXELS_PER_TICK
      
-
 
 
