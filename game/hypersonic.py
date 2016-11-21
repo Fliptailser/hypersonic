@@ -84,6 +84,7 @@ class MainWidget(BaseWidget) :
             self.player.release_laser()
         
     def on_update(self):
+        print self.player.score
         self.audio_ctrl.on_update()
         if not self.paused:
             self.display_objects.on_update()

@@ -5,6 +5,7 @@ class Player(object):
         self.health = 50
         self.max_streak = 0
         self.streak = 0
+        self.streak_multiplier = 1
         self.score = 0
         self.aim = 'mid'
         self.holding_laser = False
@@ -61,19 +62,23 @@ class Player(object):
         """
         Determines if the current shot hit one of the targets
         """
+        # TODO check if needs to be adjusted based on nowbar position? idk seems off
+        # maybe bigger slop window? idk
         time = self.audio_ctrl.get_time()
         slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
         possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
         print possible_hits, is_laser
         for target in possible_hits:
-            if target.destroyed_with == 'laser' and is_laser:
+            if target.destroyed_with == 'laser' and is_laser and self.aim == target.lane:
                 target.destroy()
                 print "laser hit"
                 # TODO start note_generation
-            elif target.destroyed_with == 'rocket' and not is_laser:
+                self.score += 100 * self.streak_multiplier
+            elif target.destroyed_with == 'rocket' and not is_laser and self.aim == target.lane:
                 target.destroy()
                 print "rocket hit"
                 # TODO start rocket, maybe do callback once hits?
+                self.score += 200 * self.streak_multiplier
 
         # TODO score
 
