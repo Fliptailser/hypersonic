@@ -183,8 +183,10 @@ class Bomb(Target):
         super(Bomb, self).__init__(lane, tick, length)
 
         self.add(Color(rgb=[1, 0.5, 0.5], a=0.8))
-        self.radius = 30
-        self.shape = Line(circle=(self.x, self.y, self.radius), closed=True)
+        self.radius = 50
+        self.x -= self.radius/4 # TODO refine this because IDK
+        self.y -= self.radius/2
+        self.shape = Ellipse(pos=(self.x, self.y), size=(self.radius, self.radius))
         self.add(self.shape)
 
     def on_update(self, dt):
