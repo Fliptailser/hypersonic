@@ -30,15 +30,15 @@ class Player(object):
 
     def aim_top(self):
         self.aim = 'top'
-        self.display.set_aim(self.aim)  # TODO in display
+        self.display.set_aim(self.aim)
 
     def aim_bottom(self):
         self.aim = 'bot'
-        self.display.set_aim(self.aim)  # TODO in display
+        self.display.set_aim(self.aim)
 
     def release_aim(self):
         self.aim = 'mid'
-        self.display.set_aim(self.aim)  # TODO in display
+        self.display.set_aim(self.aim)
 
     # called by MainWidget
     def fire_laser(self):

@@ -11,7 +11,7 @@ WINDOW_SIZE = (1280, 720)
 
 # TODO: better scroll speed / fix jittery-looking scrolling
 # It has to do with how scrolling is synced to the song frame. It's 100% synced but it gets jittery at high scroll speeds
-PIXELS_PER_TICK = 0.15
+PIXELS_PER_TICK = 0.25
 
 class Spaceship(InstructionGroup):
     """
@@ -62,6 +62,7 @@ class BeatLine(InstructionGroup):
 class Laser(InstructionGroup):
     """
     The projectile laser that is "shot" when the user fires.
+    TODO, might just be part of the BEAM class
     """
 
     def __init__(self):
@@ -137,8 +138,17 @@ class Target(InstructionGroup):
     def __init__(self, lane, tick, length):
         super(Target, self).__init__()
         self.lane = lane
-        self.tick = tick
+        self.x = tick * PIXELS_PER_TICK
+        self.y = self.vertical_pos_from_lane(lane)
         self.length = length
+
+    def vertical_pos_from_lane(self, lane):
+        if lane == 'top':
+            return 360 + 160
+        elif lane == 'mid':
+            return 360
+        else:
+            return 360 - 160
 
     def on_update(self, dt):
         pass
@@ -152,6 +162,14 @@ class Tap(Target):
     def __init__(self, lane, tick, length):
         super(Tap, self).__init__(lane, tick, length)
 
+        self.add(Color(rgb=[0.5, 0.5, 1], a=0.8))
+        self.width = 20
+        self.height = 120
+        # self.x -= self.width/2
+        self.y -= self.height/2
+        self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
+        self.add(self.shape)
+
     def on_update(self, dt):
         pass
 
@@ -163,6 +181,11 @@ class Bomb(Target):
 
     def __init__(self, lane, tick, length):
         super(Bomb, self).__init__(lane, tick, length)
+
+        self.add(Color(rgb=[1, 0.5, 0.5], a=0.8))
+        self.radius = 30
+        self.shape = Line(circle=(self.x, self.y, self.radius), closed=True)
+        self.add(self.shape)
 
     def on_update(self, dt):
         pass

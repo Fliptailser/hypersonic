@@ -1,7 +1,7 @@
 # hypersonic
 Fly through space at the speed of music.
 
-##Checklist
+## Checklist
 - [x] Find first song audio
 - [x] Label first song audio
 - [ ] Find images for graphics
