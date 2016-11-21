@@ -204,7 +204,7 @@ class Bomb(Target):
         self.x += self.length
         self.y -= self.radius/2
         self.shape = Ellipse(pos=(self.x, self.y), size=(self.radius, self.radius))
-        self.add(self.shape)
+        # self.add(self.shape)
 
     def on_update(self, dt):
         pass
@@ -225,7 +225,7 @@ class Hold(Target):
         # self.x -= self.width/2
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
-        self.add(self.shape)
+        # self.add(self.shape)
 
     def on_update(self, dt):
         pass
