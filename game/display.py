@@ -199,6 +199,15 @@ class Hold(Target):
     def __init__(self, lane, tick, length):
         super(Hold, self).__init__(lane, tick, length)
 
+        # TODO investigate the x coordinate in-depth
+        self.add(Color(rgb=[0.5, 1, 0.5], a=0.8))
+        self.width = self.length * PIXELS_PER_TICK
+        self.height = 120
+        # self.x -= self.width/2
+        self.y -= self.height/2
+        self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
+        self.add(self.shape)
+
     def on_update(self, dt):
         pass
 
