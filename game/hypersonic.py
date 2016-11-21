@@ -56,18 +56,16 @@ class MainWidget(BaseWidget) :
         if keycode[1] == 'w':
         	self.player.aim_top()
         	self.last_key_held = 'w'
-        elif keycode[1] == 'x':
-        	self.player.aim_bottom()
-        	self.last_key_held = 'x'
         elif keycode[1] == 's':
-        	self.player.release_aim()
+        	self.player.aim_bottom()
+        	self.last_key_held = 's'
         
     def on_key_up(self, keycode):
        
     	# release aim if let go of last key held
         if keycode[1] == 'w' == self.last_key_held:
         	self.player.release_aim()
-        elif keycode[1] == 'x' == self.last_key_held:
+        elif keycode[1] == 's' == self.last_key_held:
         	self.player.release_aim()
         
     def on_update(self):
