@@ -16,6 +16,8 @@ from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
 import traceback
+import pygame
+import pygame.locals
 
 
 class BaseWidget(Widget):
@@ -49,6 +51,33 @@ class BaseWidget(Widget):
         if hasattr(self.__class__, 'on_update'):
             Clock.schedule_interval(self._update, 0)
 
+        try:
+            # initialize xbox controller
+            pygame.joystick.init()
+
+            # get the xbox 360 controller
+            for i in xrange(pygame.joystick.get_count()):
+                joystick = pygame.joystick.Joystick(i)
+                joystick.init()
+                if joystick.get_name() == "Wireless 360 Controller":
+                    self.joystick = joystick
+                    self.xbox = i
+                    break
+
+            print self.joystick.get_name() + " was found!"
+            self.controller_found = True
+
+            self.num_axes = self.joystick.get_numaxes()
+
+            self.num_buttons = self.joystick.get_numbuttons()
+
+            Window.bind(on_joy_button_down=self._joy_button_down)
+            Window.bind(on_joy_button_up=self._joy_button_up)
+            Window.bind(on_joy_axis=self._joy_axis)
+        except:
+            print "no xbox controller found"
+            self.controller_found = False
+
     def get_mouse_pos(self) :
         # due to a bug in Kivy, Window.mouse_pos is not correct for
         # high-def displays. This function accounts for that.
@@ -69,6 +98,18 @@ class BaseWidget(Widget):
 
             if hasattr(self.__class__, 'on_key_up'):
                 self.on_key_up(keycode)
+
+    def _joy_button_down(self, window_obj, stick_id, button_id):
+        if stick_id == self.xbox and hasattr(self.__class__, 'on_joy_button_down'):
+            self.on_joy_button_down(button_id)
+
+    def _joy_button_up(self, window_obj, stick_id, button_id):
+        if stick_id == self.xbox and hasattr(self.__class__, 'on_joy_button_up'):
+            self.on_joy_button_up(button_id)
+
+    def _joy_axis(self, window_obj, stick_id, axis_id, value):
+        if stick_id == self.xbox and hasattr(self.__class__, 'on_joy_axis'):
+            self.on_joy_axis(axis_id, value)
 
     def _close(self, *args):
         self.on_close()

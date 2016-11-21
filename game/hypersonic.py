@@ -53,7 +53,7 @@ class MainWidget(BaseWidget) :
         
         self.key_counts = {'top' : 0, 'mid' : 0, 'bot' : 0}
         
-        
+        self.i = 0
         
     def on_key_down(self, keycode, modifiers):
         
@@ -115,10 +115,38 @@ class MainWidget(BaseWidget) :
 
         if touch.button == 'left':
             self.player.release_laser()
+
+    def on_joy_button_down(self, buttonid):
+        """
+        XBOX controller buttons down
+        0: dpad up, 1: dpad down, 2: dpad left, 3: dpad right
+        4: start, 5: back, 8: LB, 9: RB
+        11: A, 12: B, 13: X, 14: Y
+        """
+        print "down", buttonid
+
+    def on_joy_button_up(self, buttonid):
+        """
+        XBOX controller buttons up
+        """
+        print "up", buttonid
+
+    def on_joy_axis(self, axis_id, value):
+        """
+        XBOX controller axes changes
+        0: left joystick x
+        1: left joystick y
+        2: right joystick x
+        3: right joystick y
+        4: left trigger
+        5: right trigger
+        """
+        print "axis", axis_id, value
         
     def on_update(self):
         self.label.text = str(self.player.score)
         self.audio_ctrl.on_update()
+
         if not self.paused:
             self.display_objects.on_update()
             self.game_display.set_scroll(self.audio_ctrl.get_time())
