@@ -32,6 +32,9 @@ class MainWidget(BaseWidget) :
         # midi_lists['signals']: TODO
         # midi_lists['targets']: list of (type, lane, tick, length)
         # midi_lists['tempo']: list of (time, tick)
+        
+        self.label = Label(text = str(0), halign='right', font_size=50, x = 940, y = 600, texture_size=[400,200])
+        self.add_widget(self.label)
 
         song_path = '../assets/' + PROTOTYPE_SONG + '.wav'
         self.audio_ctrl = AudioController(song_path, midi_lists['tempo'])
@@ -48,26 +51,56 @@ class MainWidget(BaseWidget) :
         # keeps track of w and x being held so only releases when user releases last pressed
         self.last_key_held = 0
         
+        self.key_counts = {'top' : 0, 'mid' : 0, 'bot' : 0}
+        
+        
+        
     def on_key_down(self, keycode, modifiers):
         
         if keycode[1] == 'spacebar':
             self.audio_ctrl.toggle()
             self.paused = not self.paused
 
-        if keycode[1] == 'w':
-        	self.player.aim_top()
-        	self.last_key_held = 'w'
-        elif keycode[1] == 's':
-        	self.player.aim_bottom()
-        	self.last_key_held = 's'
+        if keycode[1] in 'qwertyyuiop':
+            self.key_counts['top'] += 1
+            self.player.update_keys(self.key_counts)
+            self.player.fire('top')
+            
+        if keycode[1] in 'asdfghjkl':
+            self.key_counts['mid'] += 1
+            self.player.update_keys(self.key_counts)
+            self.player.fire('mid')
+            
+        if keycode[1] in 'zxcvbnm':
+            self.key_counts['bot'] += 1
+            self.player.update_keys(self.key_counts)
+            self.player.fire('bot')
+            
+        # if keycode[1] == 'w':
+        	# self.player.aim_top()
+        	# self.last_key_held = 'w'
+        # elif keycode[1] == 's':
+        	# self.player.aim_bottom()
+        	# self.last_key_held = 's'
         
     def on_key_up(self, keycode):
-       
+        if keycode[1] in 'qwertyyuiop':
+            self.key_counts['top'] -= 1
+            self.player.update_keys(self.key_counts)
+            
+        if keycode[1] in 'asdfghjkl':
+            self.key_counts['mid'] -= 1
+            self.player.update_keys(self.key_counts)
+            
+        if keycode[1] in 'zxcvbnm':
+            self.key_counts['bot'] -= 1
+            self.player.update_keys(self.key_counts)
+            
     	# release aim if let go of last key held
-        if keycode[1] == 'w' == self.last_key_held:
-        	self.player.release_aim()
-        elif keycode[1] == 's' == self.last_key_held:
-        	self.player.release_aim()
+        # if keycode[1] == 'w' == self.last_key_held:
+        	# self.player.release_aim()
+        # elif keycode[1] == 's' == self.last_key_held:
+        	# self.player.release_aim()
 
     def on_touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
@@ -84,11 +117,12 @@ class MainWidget(BaseWidget) :
             self.player.release_laser()
         
     def on_update(self):
-        print self.player.score
+        self.label.text = str(self.player.score)
         self.audio_ctrl.on_update()
         if not self.paused:
             self.display_objects.on_update()
             self.game_display.set_scroll(self.audio_ctrl.get_time())
+            self.player.on_update()
             
 Window.size = (1280, 720)
 

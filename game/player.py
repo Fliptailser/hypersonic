@@ -15,6 +15,8 @@ class Player(object):
         self.display = display
         self.beats = midi_data['beats']
         self.targets = display.targets
+        
+        self.current_holds = []
 
     def gain_health(self, amt=1):
         self.health += amt
@@ -57,6 +59,32 @@ class Player(object):
     def fire_rocket(self):
         self.check_hit_target(is_laser=False)
         # TODO display anim
+        
+    def fire(self, lane):
+        time = self.audio_ctrl.get_time()
+        slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
+        possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
+  
+        for target in possible_hits:
+            if target.lane == lane:
+                self.display.hit_target(target)
+                self.score += 100 * self.streak_multiplier
+        
+            # if target.destroyed_with == 'laser' and is_laser and self.aim == target.lane:
+                # target.destroy()
+                # self.display.hit_target(target)
+                # print "laser hit"
+                # # TODO start note_generation
+                # self.score += 100 * self.streak_multiplier
+            # elif target.destroyed_with == 'rocket' and not is_laser and self.aim == target.lane:
+                # target.destroy()
+                # self.display.remove_target(target)
+                # print "rocket hit"
+                # # TODO start rocket, maybe do callback once hits?
+                # self.score += 200 * self.streak_multiplier
+        
+    def update_keys(self, keys):
+        self.keys = keys
 
     def check_hit_target(self, is_laser=True):
         """
@@ -71,17 +99,23 @@ class Player(object):
         for target in possible_hits:
             if target.destroyed_with == 'laser' and is_laser and self.aim == target.lane:
                 target.destroy()
+                self.display.hit_target(target)
                 print "laser hit"
                 # TODO start note_generation
                 self.score += 100 * self.streak_multiplier
             elif target.destroyed_with == 'rocket' and not is_laser and self.aim == target.lane:
                 target.destroy()
+                self.display.remove_target(target)
                 print "rocket hit"
                 # TODO start rocket, maybe do callback once hits?
                 self.score += 200 * self.streak_multiplier
 
         # TODO score
 
+
     def on_update(self):
-        # TODO
-        pass
+        time = self.audio_ctrl.get_time()
+        slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
+        possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
+        #for target in possible_hits:
+            

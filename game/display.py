@@ -5,7 +5,7 @@ from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 from common.clock import *
 
 SPACESHIP_X = 100
-NOW_X = 250
+NOW_X = 300
 RET_X = 350 # TODO: see if need to update with song?
 WINDOW_SIZE = (1280, 720)
 
@@ -24,7 +24,7 @@ class Spaceship(InstructionGroup):
         self.y = y
 
         # TODO make it the image
-        self.add(Rectangle(pos=(self.x-80, self.y-70), size=(160,140)))
+        self.add(Rectangle(pos=(self.x-80, self.y-40), size=(140,80)))
 
     def move_vertical(self, new_y):
         # TODO
@@ -42,7 +42,7 @@ class NowPillar(InstructionGroup):
     def __init__(self):
         super(NowPillar, self).__init__()
         self.add(Color(rgb=[0.9, 0.9, 0.9]))
-        self.add(Line(width=4, points=[NOW_X, 360 - 80 - 160, NOW_X, 360 + 80 + 160]))
+        self.add(Line(width=4, points=[NOW_X - 20, 360 - 80 - 160, NOW_X - 20, 360 + 80 + 160]))
 
     def on_update(self, dt):
         pass
@@ -98,13 +98,13 @@ class Beam(InstructionGroup):
         self.set_aim(aim)
 
         # add red first so that blue is on top
-        self.add(Color(rgb=[1, 0.5, 0.5], a=0.3))
-        self.red_line = Line(points=[ship_x, ship_y, RET_X, self.reticle_y], width=3)
-        self.add(self.red_line)
+        # self.add(Color(rgb=[1, 0.5, 0.5], a=0.3))
+        # self.red_line = Line(points=[ship_x, ship_y, RET_X, self.reticle_y], width=3)
+        # self.add(self.red_line)
 
         self.add(Color(rgb=[0.5, 0.5, 1], a=0.3))
-        self.blue_line = Line(points=[ship_x, ship_y, NOW_X, self.now_aim_y], width=3)
-        self.add(self.blue_line)
+        #self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=3)
+        #self.add(self.blue_line)
 
     def set_aim(self, aim):
         """
@@ -122,8 +122,8 @@ class Beam(InstructionGroup):
 
     def update_points(self, ship_y):
         self.ship_y = ship_y
-        self.blue_line.points = [self.ship_x, self.ship_y, NOW_X, self.now_aim_y]
-        self.red_line.points = [self.ship_x, ship_y, RET_X, self.reticle_y]
+        #self.blue_line.points = [self.ship_x, self.ship_y, NOW_X - 20, self.now_aim_y]
+        #self.red_line.points = [self.ship_x, ship_y, RET_X, self.reticle_y]
 
     def on_update(self, dt):
         pass
@@ -139,7 +139,7 @@ class Target(InstructionGroup):
         super(Target, self).__init__()
         self.lane = lane
         self.tick = tick
-        self.x = tick * PIXELS_PER_TICK
+        self.x = NOW_X + tick * PIXELS_PER_TICK
         self.y = self.vertical_pos_from_lane(lane)
         self.length = length
         self.hit = False
@@ -178,8 +178,8 @@ class Tap(Target):
 
         self.add(Color(rgb=[0.5, 0.5, 1], a=0.8))
         self.width = 20
-        self.height = 120
-        # self.x -= self.width/2
+        self.height = 100
+        self.x -= self.width/2
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
@@ -200,8 +200,8 @@ class Bomb(Target):
 
         self.add(Color(rgb=[1, 0.5, 0.5], a=0.8))
         self.radius = 50
-        self.x -= self.radius/4 # TODO refine this because IDK
-        self.x += self.length
+        self.x -= self.radius/2 # TODO refine this because IDK
+        #self.x += self.length
         self.y -= self.radius/2
         self.shape = Ellipse(pos=(self.x, self.y), size=(self.radius, self.radius))
         # self.add(self.shape)
@@ -222,7 +222,7 @@ class Hold(Target):
         self.add(Color(rgb=[0.5, 1, 0.5], a=0.8))
         self.width = self.length * PIXELS_PER_TICK
         self.height = 120
-        # self.x -= self.width/2
+        #self.x -= self.width/2
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         # self.add(self.shape)
@@ -272,7 +272,9 @@ class GameDisplay(InstructionGroup):
         for target in song_data['targets']:
             self.add_target(target)
             
-        
+    def hit_target(self, target):
+        self.targets.remove(target)
+        self.remove(target)
 
     def add_target(self, target_data):
         target_dict = {'tap': Tap, 'bomb': Bomb, 'hold': Hold}

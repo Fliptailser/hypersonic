@@ -40,11 +40,11 @@ MIDI_KEY = {
     51: (add_beat, False),
     
     68: (add_tap, 'top'),
-    61: (add_hold, 'top'),
+    67: (add_hold, 'top'),
     66: (add_bomb, 'top'),
     
     65: (add_tap, 'mid'),
-    61: (add_hold, 'mid'),
+    64: (add_hold, 'mid'),
     63: (add_bomb, 'mid'),
     
     62: (add_tap, 'bot'),
