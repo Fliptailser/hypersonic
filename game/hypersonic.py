@@ -12,13 +12,12 @@ from kivy.core.window import Window
 import parse
 import display
 from audioctrl import AudioController
-
+from player import *
 
 
 from kivy.clock import Clock as kivyClock
 
 PROTOTYPE_SONG = 'DanimalCannon_Axis'
-SONG_PATH = '../assets/Danimal_Cannon- Lunaria-01_Axis.wav'
 
 class MainWidget(BaseWidget) :
     def __init__(self):
@@ -41,18 +40,35 @@ class MainWidget(BaseWidget) :
         self.game_display = display.GameDisplay(midi_lists)
         self.display_objects.add(self.game_display)
         self.canvas.add(self.display_objects)
+
+        self.player = Player(midi_lists, self.game_display, self.audio_ctrl)
         
         self.paused = True
+        # keeps track of w and x being held so only releases when user releases last pressed
+        self.last_key_held = 0
         
     def on_key_down(self, keycode, modifiers):
         
         if keycode[1] == 'spacebar':
             self.audio_ctrl.toggle()
             self.paused = not self.paused
-          
+
+        if keycode[1] == 'w':
+        	self.player.aim_top()
+        	self.last_key_held = 'w'
+        elif keycode[1] == 'x':
+        	self.player.aim_bottom()
+        	self.last_key_held = 'x'
+        elif keycode[1] == 's':
+        	self.player.release_aim()
         
     def on_key_up(self, keycode):
-        pass
+       
+    	# release aim if let go of last key held
+        if keycode[1] == 'w' == self.last_key_held:
+        	self.player.release_aim()
+        elif keycode[1] == 'x' == self.last_key_held:
+        	self.player.release_aim()
         
     def on_update(self):
         self.audio_ctrl.on_update()
