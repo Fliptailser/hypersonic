@@ -43,22 +43,17 @@ class Player(object):
         self.aim = 'mid'
         self.display.set_aim(self.aim)
 
-    # called by MainWidget
-    def fire_laser(self):
-        self.check_hit_target()
-        self.holding_laser = True
-        # TODO display anim
+    def update_position(self, mouse):
+        x,y = mouse
+        self.display.ship.move_vertical(pos=y)
 
-    # called by MainWidget
-    def release_laser(self):
-        # TODO need to check if release too early
-        self.holding_laser = False
-        pass
-
-    # called by MainWidget
-    def fire_rocket(self):
-        self.check_hit_target(is_laser=False)
-        # TODO display anim
+    def joystick_move(self, emphasis=1):
+        """
+        Moves the spaceship based on joystick motion
+        emphasis: what percent of a full step should be taken (can be pos or neg)
+        """
+        step = int(15*emphasis)
+        self.display.ship.move_vertical(step=step)
         
     def fire(self, lane):
         time = self.audio_ctrl.get_time()
@@ -85,33 +80,6 @@ class Player(object):
         
     def update_keys(self, keys):
         self.keys = keys
-
-    def check_hit_target(self, is_laser=True):
-        """
-        Determines if the current shot hit one of the targets
-        """
-        # TODO check if needs to be adjusted based on nowbar position? idk seems off
-        # maybe bigger slop window? idk
-        time = self.audio_ctrl.get_time()
-        slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
-        possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
-        print possible_hits, is_laser
-        for target in possible_hits:
-            if target.destroyed_with == 'laser' and is_laser and self.aim == target.lane:
-                target.destroy()
-                self.display.hit_target(target)
-                print "laser hit"
-                # TODO start note_generation
-                self.score += 100 * self.streak_multiplier
-            elif target.destroyed_with == 'rocket' and not is_laser and self.aim == target.lane:
-                target.destroy()
-                self.display.remove_target(target)
-                print "rocket hit"
-                # TODO start rocket, maybe do callback once hits?
-                self.score += 200 * self.streak_multiplier
-
-        # TODO score
-
 
     def on_update(self):
         time = self.audio_ctrl.get_time()

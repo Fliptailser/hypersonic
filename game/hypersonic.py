@@ -54,6 +54,12 @@ class MainWidget(BaseWidget) :
         self.key_counts = {'top' : 0, 'mid' : 0, 'bot' : 0}
         
         self.i = 0
+
+        self.xbox_buttons = {0: "dpad_up", 1: "dpad_down", 2: "dpad_left", 3: "dpad_right",
+                             4: "start", 5: "back", 8: "LB", 9: "RB",
+                             11: "A", 12: "B", 13: "X", 14: "Y"}
+
+        self.left_joystick_y = 0
         
     def on_key_down(self, keycode, modifiers):
         
@@ -105,31 +111,55 @@ class MainWidget(BaseWidget) :
     def on_touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
         print touch.button
-        if touch.button == 'left':
-            self.player.fire_laser()
-        else:
-            print "right click"
-            self.player.fire_rocket()
 
     def on_touch_up(self, touch):
-
-        if touch.button == 'left':
-            self.player.release_laser()
+        pass
 
     def on_joy_button_down(self, buttonid):
         """
         XBOX controller buttons down
-        0: dpad up, 1: dpad down, 2: dpad left, 3: dpad right
-        4: start, 5: back, 8: LB, 9: RB
-        11: A, 12: B, 13: X, 14: Y
         """
-        print "down", buttonid
+        # print "down", buttonid
+        button = self.xbox_buttons[buttonid]
+
+        if button == 'start':
+            self.audio_ctrl.toggle()
+            self.paused = not self.paused
+
+        if button == 'Y':
+            self.key_counts['top'] += 1
+            self.player.update_keys(self.key_counts)
+            self.player.fire('top')
+            
+        if button == 'B':
+            self.key_counts['mid'] += 1
+            self.player.update_keys(self.key_counts)
+            self.player.fire('mid')
+            
+        if button == 'A':
+            self.key_counts['bot'] += 1
+            self.player.update_keys(self.key_counts)
+            self.player.fire('bot')
+
 
     def on_joy_button_up(self, buttonid):
         """
         XBOX controller buttons up
         """
-        print "up", buttonid
+        # print "up", buttonid
+        button = self.xbox_buttons[buttonid]
+        
+        if button == 'Y':
+            self.key_counts['top'] -= 1
+            self.player.update_keys(self.key_counts)
+            
+        if button == 'B':
+            self.key_counts['mid'] -= 1
+            self.player.update_keys(self.key_counts)
+            
+        if button == 'A':
+            self.key_counts['bot'] -= 1
+            self.player.update_keys(self.key_counts)
 
     def on_joy_axis(self, axis_id, value):
         """
@@ -141,7 +171,10 @@ class MainWidget(BaseWidget) :
         4: left trigger
         5: right trigger
         """
-        print "axis", axis_id, value
+        # print "axis", axis_id, value
+        if axis_id == 1:
+            # negative value positive percent is down
+            self.left_joystick_y = -value
         
     def on_update(self):
         self.label.text = str(self.player.score)
@@ -150,6 +183,14 @@ class MainWidget(BaseWidget) :
         if not self.paused:
             self.display_objects.on_update()
             self.game_display.set_scroll(self.audio_ctrl.get_time())
+
+            # move with left joystick
+            if self.controller_found:
+                self.player.joystick_move(self.left_joystick_y)
+            # move with the mouse
+            else:
+                self.player.update_position(Window.mouse_pos)
+                
             self.player.on_update()
             
 Window.size = (1280, 720)

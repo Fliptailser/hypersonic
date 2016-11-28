@@ -22,13 +22,28 @@ class Spaceship(InstructionGroup):
         super(Spaceship, self).__init__()
         self.x = x
         self.y = y
+        self.max_y = 559
+        self.min_y = 161
 
         # TODO make it the image
-        self.add(Rectangle(pos=(self.x-80, self.y-40), size=(140,80)))
+        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(140,80))
+        self.add(self.rect)
 
-    def move_vertical(self, new_y):
-        # TODO
-        pass
+    def move_vertical(self, pos=None, step=0):
+        """
+        Update vertical position of the spaceship so it can move up and down
+        """
+        if pos:
+            self.y = pos
+        if step:
+            self.y += step
+
+        if self.y > self.max_y:
+            self.y = self.max_y
+        elif self.y < self.min_y:
+            self.y = self.min_y
+
+        self.rect.pos = (self.x-80, self.y-40)
 
     def on_update(self, dt):
         pass
@@ -204,7 +219,7 @@ class Bomb(Target):
         #self.x += self.length
         self.y -= self.radius/2
         self.shape = Ellipse(pos=(self.x, self.y), size=(self.radius, self.radius))
-        # self.add(self.shape)
+        self.add(self.shape)
 
     def on_update(self, dt):
         pass
@@ -225,7 +240,7 @@ class Hold(Target):
         #self.x -= self.width/2
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
-        # self.add(self.shape)
+        self.add(self.shape)
 
     def on_update(self, dt):
         pass
@@ -245,12 +260,12 @@ class GameDisplay(InstructionGroup):
         
         # Add non-scrolling visuals
 
-        # player
-        self.player = Spaceship(SPACESHIP_X, 360)
-        self.add(self.player)
+        # ship
+        self.ship = Spaceship(SPACESHIP_X, 360)
+        self.add(self.ship)
 
-        # TODO improve player's x and y position so laser comes out of ship instead of inside
-        self.beam = Beam(self.player.x, self.player.y)
+        # TODO improve ship's x and y position so laser comes out of ship instead of inside
+        self.beam = Beam(self.ship.x, self.ship.y)
         self.add(self.beam)
 
         # TODO: separate object
@@ -291,8 +306,8 @@ class GameDisplay(InstructionGroup):
 
     def set_aim(self, aim):
         self.beam.set_aim(aim)
-        # TODO improve player y position
-        self.beam.update_points(self.player.y)
+        # TODO improve ship y position
+        self.beam.update_points(self.ship.y)
 
     def get_targets_in_range(self, start_tick, end_tick):
         """
