@@ -179,6 +179,7 @@ class MainWidget(BaseWidget) :
     def on_update(self):
         self.label.text = str(self.player.score)
         self.audio_ctrl.on_update()
+        print Window.mouse_pos
 
         if not self.paused:
             self.display_objects.on_update()

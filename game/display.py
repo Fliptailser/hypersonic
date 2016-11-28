@@ -48,6 +48,29 @@ class Spaceship(InstructionGroup):
     def on_update(self, dt):
         pass
 
+class HealthBar(InstructionGroup):
+    """
+    Health bar for the ship, saying its fuel level
+    """
+    def __init__(self):
+        super(HealthBar, self).__init__()
+        self.x_base = 375
+        self.y_base = 620
+
+        self.outside_rect = Rectangle(pos=(self.x_base, 620), size=(400,60))
+        self.add(self.outside_rect)
+
+        self.add(Color(rgb=[0.5, 0.0, 0.0]))
+        self.inner_rect = Rectangle(pos=(self.x_base+2, self.y_base+1), size=(200, 58))
+        self.add(self.inner_rect)
+
+    def update_health(self, value):
+        # TODO make it scale at different rates at different points maybe?
+        x_val = int(396.*value/100)
+        self.inner_rect.size = (x_val, 58)
+
+    def on_update(self, dt):
+        pass
 
 class NowPillar(InstructionGroup):
     """
@@ -61,7 +84,8 @@ class NowPillar(InstructionGroup):
 
     def on_update(self, dt):
         pass
-        
+
+
 class BeatLine(InstructionGroup):
     """
     Lines that go along with the beat to help the user follow the beat.
@@ -73,6 +97,7 @@ class BeatLine(InstructionGroup):
         x = NOW_X + tick * PIXELS_PER_TICK
         width = 3 if count == 1 else 1
         self.add(Line(width=width, points=[x, 360 - 80 - 160, x, 360 + 80 + 160]))
+
 
 class Laser(InstructionGroup):
     """
@@ -263,6 +288,9 @@ class GameDisplay(InstructionGroup):
         # ship
         self.ship = Spaceship(SPACESHIP_X, 360)
         self.add(self.ship)
+
+        self.health = HealthBar()
+        self.add(self.health)
 
         # TODO improve ship's x and y position so laser comes out of ship instead of inside
         self.beam = Beam(self.ship.x, self.ship.y)

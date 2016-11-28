@@ -18,15 +18,17 @@ class Player(object):
         
         self.current_holds = []
 
-    def gain_health(self, amt=1):
+    def gain_health(self, amt=5):
         self.health += amt
         if self.health > 100:
             self.health = 100
+        self.display.health.update_health(self.health)
 
-    def lose_health(self, amt=1):
+    def lose_health(self, amt=5):
         self.health -= amt
         if self.health < 0:
             self.health = 0
+        self.display.health.update_health(self.health)
 
     def get_health(self):
         return self.health
@@ -59,11 +61,18 @@ class Player(object):
         time = self.audio_ctrl.get_time()
         slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
         possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
+        hit = False
   
         for target in possible_hits:
             if target.lane == lane:
                 self.display.hit_target(target)
                 self.score += 100 * self.streak_multiplier
+                hit = True
+
+        if hit:
+            self.gain_health()
+        else:
+            self.lose_health()
         
             # if target.destroyed_with == 'laser' and is_laser and self.aim == target.lane:
                 # target.destroy()
