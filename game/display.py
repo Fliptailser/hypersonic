@@ -5,6 +5,8 @@ from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 from common.clock import *
 
 SPACESHIP_X = 100
+SPACESHIP_WIDTH = 140
+SPACESHIP_SRC = 'ship_blank.png'
 NOW_X = 300
 WINDOW_SIZE = (1280, 720)
 
@@ -24,9 +26,7 @@ class Spaceship(InstructionGroup):
         self.max_y = 559
         self.min_y = 161
 
-        # TODO make it the image
-        self.add(Color(rgb=[0.2, 0.2, 0.8]))
-        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(140,80))
+        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(SPACESHIP_WIDTH, 80), source=SPACESHIP_SRC)
         self.add(self.rect)
         
         self.add(Color(rgb=[1.0, 1.0, 1.0]))
@@ -103,6 +103,76 @@ class BeatLine(InstructionGroup):
         width = 3 if count == 1 else 1
         self.add(Line(width=width, points=[x, 360 - 80 - 160, x, 360 + 80 + 160]))
 
+class Laser(InstructionGroup):
+    """
+    The projectile laser that is "shot" when the user fires.
+    TODO, might just be part of the BEAM class
+    """
+
+    def __init__(self):
+        super(Laser, self).__init__()
+
+    def on_update(self, dt):
+        pass
+
+
+class Rocket(InstructionGroup):
+    """
+    Rocket object that is shot when the user fires.
+    """
+
+    def __init__(self):
+        super(Rocket, self).__init__()
+
+    def on_update(self, dt):
+        pass
+
+
+class Beam(InstructionGroup):
+    """
+    This is the object that shows where the ship is aiming.
+    """
+
+    def __init__(self, ship_x, ship_y, aim='mid'):
+        super(Beam, self).__init__()
+
+        self.ship_x = ship_x
+        self.ship_y = ship_y
+
+        self.set_aim(aim)
+
+        # add red first so that blue is on top
+        # self.add(Color(rgb=[1, 0.5, 0.5], a=0.3))
+        # self.red_line = Line(points=[ship_x, ship_y, RET_X, self.reticle_y], width=3)
+        # self.add(self.red_line)
+
+        self.add(Color(rgb=[0.35, 0.98, 1], a=0.3))
+        self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=3)
+        self.add(self.blue_line)
+        self.t = 0
+
+    def set_aim(self, aim):
+        """
+        This DOES NOT update update the points
+        """
+        if aim == 'mid':
+            self.now_aim_y = 360
+            self.reticle_y = 360
+        elif aim == 'top':
+            self.now_aim_y = 360 + 180
+            self.reticle_y = 360 + 180
+        else:
+            self.now_aim_y = 360 - 180
+            self.reticle_y = 360 - 180
+
+    def update_points(self, ship_y):
+        self.ship_y = ship_y
+        self.blue_line.points = [self.ship_x, self.ship_y, NOW_X - 20, self.now_aim_y]
+        #self.red_line.points = [self.ship_x, ship_y, RET_X, self.reticle_y]
+
+    def on_update(self, dt):
+        self.t += dt
+        return self.t < 0.1
 
 class Target(InstructionGroup):
     """
@@ -165,6 +235,11 @@ class Tap(Target):
         self.color.a = 0
         self.is_hit = True
         return (100, False)
+        
+    def miss(self):
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
+        
     
     def on_update(self, dt):
         pass
@@ -177,7 +252,7 @@ class HoldStart(Target):
         self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
         self.add(self.color)
         self.width = 80 * PIXELS_PER_TICK
-        self.height = 120
+        self.height = 50
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
@@ -186,6 +261,11 @@ class HoldStart(Target):
         self.color.a = 0
         self.is_hit = True
         return (100, True)
+        
+    def miss(self):
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
+        
         
     def on_update(self, dt):
         pass
@@ -202,7 +282,7 @@ class Hold(Target):
         self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
         self.add(self.color)
         self.width = 80 * PIXELS_PER_TICK
-        self.height = 30
+        self.height = 20
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
@@ -211,6 +291,11 @@ class Hold(Target):
         self.color.a = 0
         self.is_hit = True
         return (10, False)
+        
+    def miss(self):
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
+        
         
     def on_update(self, dt):
         pass
@@ -223,7 +308,7 @@ class HoldEnd(Target):
         self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
         self.add(self.color)
         self.width = 80 * PIXELS_PER_TICK
-        self.height = 30
+        self.height = 20
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
@@ -233,7 +318,10 @@ class HoldEnd(Target):
         self.is_hit = True
         return (10, True)
         
-
+    def miss(self):
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
+        
         
     def on_update(self, dt):
         pass
@@ -242,10 +330,10 @@ class ReverseStart(Target):
     def __init__(self, lane, tick):
         super(ReverseStart, self).__init__(lane, tick)
 
-        self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
+        self.color = Color(rgb=[1.0, 0.5, 0.5], a=0.8)
         self.add(self.color)
         self.width = 80 * PIXELS_PER_TICK
-        self.height = 120
+        self.height = 50
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
@@ -267,10 +355,10 @@ class Reverse(Target):
         super(Reverse, self).__init__(lane, tick)
 
         # TODO investigate the x coordinate in-depth
-        self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
+        self.color = Color(rgb=[1.0, 0.5, 0.5], a=0.8)
         self.add(self.color)
         self.width = 80 * PIXELS_PER_TICK
-        self.height = 30
+        self.height = 20
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
@@ -280,6 +368,11 @@ class Reverse(Target):
         self.is_hit = True
         return (10, False)
         
+    def miss(self):
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
+        
+        
     def on_update(self, dt):
         pass
         
@@ -288,10 +381,10 @@ class ReverseEnd(Target):
     def __init__(self, lane, tick):
         super(ReverseEnd, self).__init__(lane, tick)
 
-        self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
+        self.color = Color(rgb=[1.0, 0.5, 0.5], a=0.8)
         self.add(self.color)
         self.width = 80 * PIXELS_PER_TICK
-        self.height = 30
+        self.height = 20
         self.y -= self.height/2
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
@@ -300,6 +393,11 @@ class ReverseEnd(Target):
         self.color.a = 0
         self.is_hit = True
         return (10, True)
+        
+    def miss(self):
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
+        
         
     def on_update(self, dt):
         pass
@@ -329,7 +427,9 @@ class Gate(InstructionGroup):
         pass 
         
     def miss(self):
-        pass
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
+        
         
     def on_update(self, dt):
         pass
@@ -376,6 +476,7 @@ class GameDisplay(InstructionGroup):
         self.passive_targets = [] # hold and hold_end
         self.traces = []
         self.beats = []
+        self.beams = []
         self.t = 0
         
         self.scroll = Translate(0, 0)
@@ -394,9 +495,6 @@ class GameDisplay(InstructionGroup):
         self.add(Color(rgb=[0.9,0.9,0.9]))
         self.add(Line(width = 1, points=[2, 360 + 80 + 160, 1280, 360 + 80 + 160]))
         self.add(NowPillar())
-        
-        
-        
         
         # Apply scrolling screen
         self.add(PushMatrix())
@@ -451,10 +549,17 @@ class GameDisplay(InstructionGroup):
         self.beats.append(beat)
         self.add(beat)
 
-    def set_aim(self, aim):
-        self.beam.set_aim(aim)
+    def fire_beam(self, lane):
+        """
+        Fires a beam in a direction
+        """
+        offset = 15
+        beam = Beam(self.ship.x+SPACESHIP_WIDTH/2-offset, self.ship.y, aim=lane)
+        self.add(beam)
+        self.beams.append(beam)
+        # self.beam.set_aim(aim)
         # TODO improve ship y position
-        self.beam.update_points(self.ship.y)
+        # self.beam.update_points(self.ship.y)
 
     def get_targets_in_range(self, start_tick, end_tick):
         """
@@ -466,7 +571,14 @@ class GameDisplay(InstructionGroup):
         return filter(lambda x: x.in_tick_range(start_tick, end_tick) and not x.is_hit, self.passive_targets)
     
     def on_update(self, dt):
-        pass
+        for beam in self.beams:
+            beam.on_update(dt)
+            beam.update_points(self.ship.y)  # make beam follow the ship
+
+            # TODO see how to improve beam disappearance
+            if beam.t > 0.1:
+                self.remove(beam)
+                self.beams.remove(beam)
         # self.t += dt
         # tick = self.tempo_map.time_to_tick(self.t)
         

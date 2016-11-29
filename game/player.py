@@ -3,9 +3,9 @@ class Player(object):
         super(Player, self).__init__()
         # player characteristics
         self.health = 50
-        self.max_streak = 0
         self.streak = 0
         self.streak_multiplier = 1
+        self.max_streak = 0
         self.score = 0
 
         # objects to be able to do cool stuff
@@ -16,7 +16,7 @@ class Player(object):
         
         self.current_holds = {'top' : None, 'mid' : None, 'bot' : None}
 
-    def gain_health(self, amt=5):
+    def gain_health(self, amt=1.5):
         self.health += amt
         if self.health > 100:
             self.health = 100
@@ -58,25 +58,33 @@ class Player(object):
     def fire(self, lane, keycode):
         
         time = self.audio_ctrl.get_time()
+        self.display.fire_beam(lane)
         slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
         possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
         hit = False
   
+        points = 0
         for target in possible_hits:
             if target.lane == lane:
                 points, hold = self.display.hit_target(target)
                 if hold:
                     self.current_holds[lane] = keycode
-                    
-                self.score += points * self.streak_multiplier
+                
                 hit = True
                 break
 
         if hit:
             self.gain_health()
+            self.streak += 1
+            if self.streak > self.max_streak:
+                self.max_streak = self.streak
+            self.streak_multiplier = int(self.streak/5)+1
+            self.score += points * self.streak_multiplier
         else:
             self.current_holds[lane] = None
             self.lose_health()
+            self.streak = 0
+            self.streak_multiplier = 1
         
     def release(self, lane, keycode):
         if self.current_holds[lane] == keycode:
@@ -102,6 +110,6 @@ class Player(object):
                 points, end_hold = self.display.hit_target(hold)
                 if end_hold:
                     self.current_holds[hold.lane] = None
-            
+                self.score += points * self.streak_multiplier
             
             

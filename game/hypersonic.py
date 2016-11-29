@@ -33,8 +33,12 @@ class MainWidget(BaseWidget) :
         # midi_lists['targets']: list of (type, lane, tick, length)
         # midi_lists['tempo']: list of (time, tick)
         
-        self.label = Label(text = str(0), halign='right', font_size=50, x = 940, y = 600, texture_size=[400,200])
-        self.add_widget(self.label)
+        self.score_label = Label(text = str(0), halign='right', font_size=50, x = 940, y = 600, texture_size=[400,200])
+        self.streak_label = Label(text = "Streak: 0", halign='right', font_size=25, x = 1100, y = 620, texture_size=[400,200])
+        self.multiplier_label = Label(text = "Multiplier: 1x", halign='right', font_size=25, x = 1100, y = 590, texture_size=[400,200])
+        self.add_widget(self.score_label)
+        self.add_widget(self.streak_label)
+        self.add_widget(self.multiplier_label)
 
         song_path = '../assets/' + PROTOTYPE_SONG + '.wav'
         self.audio_ctrl = AudioController(song_path, midi_lists['tempo'])
@@ -61,24 +65,26 @@ class MainWidget(BaseWidget) :
             self.audio_ctrl.toggle()
             self.paused = not self.paused
 
-        if keycode[1] in 'qwertyuiop':
-            self.player.fire('top', keycode[1])
-            
-        if keycode[1] in 'asdfghjkl':
-            self.player.fire('mid', keycode[1])
-            
-        if keycode[1] in 'zxcvbnm':
-            self.player.fire('bot', keycode[1])
+        if not self.paused:
+            if keycode[1] in 'qwertyuiop':
+                self.player.fire('top', keycode[1])
+                
+            if keycode[1] in 'asdfghjkl':
+                self.player.fire('mid', keycode[1])
+                
+            if keycode[1] in 'zxcvbnm':
+                self.player.fire('bot', keycode[1])
         
     def on_key_up(self, keycode):
-        if keycode[1] in 'qwertyyuiop':
-            self.player.release('top', keycode[1])
-            
-        if keycode[1] in 'asdfghjkl':
-            self.player.release('mid', keycode[1])
-            
-        if keycode[1] in 'zxcvbnm':
-            self.player.release('bot', keycode[1])
+        if not self.paused:
+            if keycode[1] in 'qwertyyuiop':
+                self.player.release('top', keycode[1])
+                
+            if keycode[1] in 'asdfghjkl':
+                self.player.release('mid', keycode[1])
+                
+            if keycode[1] in 'zxcvbnm':
+                self.player.release('bot', keycode[1])
 
     def on_touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
@@ -98,20 +104,15 @@ class MainWidget(BaseWidget) :
             self.audio_ctrl.toggle()
             self.paused = not self.paused
 
-        if button == 'Y':
-            self.key_counts['top'] += 1
-            self.player.update_keys(self.key_counts)
-            self.player.fire('top')
-            
-        if button == 'B':
-            self.key_counts['mid'] += 1
-            self.player.update_keys(self.key_counts)
-            self.player.fire('mid')
-            
-        if button == 'A':
-            self.key_counts['bot'] += 1
-            self.player.update_keys(self.key_counts)
-            self.player.fire('bot')
+        if not self.paused:
+            if button == 'Y':
+                self.player.fire('top', button)
+                
+            if button == 'B':
+                self.player.fire('mid', button)
+                
+            if button == 'A':
+                self.player.fire('bot', button)
 
 
     def on_joy_button_up(self, buttonid):
@@ -120,18 +121,15 @@ class MainWidget(BaseWidget) :
         """
         # print "up", buttonid
         button = self.xbox_buttons[buttonid]
-        
-        if button == 'Y':
-            self.key_counts['top'] -= 1
-            self.player.update_keys(self.key_counts)
-            
-        if button == 'B':
-            self.key_counts['mid'] -= 1
-            self.player.update_keys(self.key_counts)
-            
-        if button == 'A':
-            self.key_counts['bot'] -= 1
-            self.player.update_keys(self.key_counts)
+        if not self.paused:
+            if button == 'Y':
+                self.player.release('top', button)
+                
+            if button == 'B':
+                self.player.release('mid', button)
+                
+            if button == 'A':
+                self.player.release('bot', button)
 
     def on_joy_axis(self, axis_id, value):
         """
@@ -149,9 +147,10 @@ class MainWidget(BaseWidget) :
             self.left_joystick_y = -value
         
     def on_update(self):
-        self.label.text = str(self.player.score)
+        self.score_label.text = str(self.player.score)
+        self.streak_label.text = "Streak: " + str(self.player.streak)
+        self.multiplier_label.text = "Multiplier: " + str(self.player.streak_multiplier) + "x"
         self.audio_ctrl.on_update()
-        print Window.mouse_pos
 
         if not self.paused:
             self.display_objects.on_update()
