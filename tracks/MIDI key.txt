@@ -13,21 +13,21 @@ Game objects (things to hit)
 DIFFICULTY 1: 60
 
 For each difficulty:
-11	-
-10	-
-9	-
+11	TRACE gate
+10	TRACE trail
+9	TRACE chain
 8	TOP tap
 7	TOP hold
-6	TOP bomb
+6	TOP reverse
 5	MID tap
 4	MID hold
-3	MID bomb
+3	MID reverse
 2	BOT tap
 1	BOT hold
-0	BOT bomb
+0	BOT reverse
 
 ========================================
-Signals (controls under the hood)
+Signals (controls under the hood for game or visuals)
 ========================================
 
 51	UPBEAT
@@ -35,9 +35,5 @@ Signals (controls under the hood)
 
 
 TODO:
-Ship Trail signal
+Ship Exhaust signal
 Bass Bump signal
-Streams - a freer path for the ship to follow to gain points
-	stream 		- a single pulse or the end of a continuous stream
-	stream_tie 	- a stream pulse that automatically connects to the next one, creating a path
-			- vertical position determined by note velocity 0-127

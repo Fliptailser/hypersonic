@@ -47,13 +47,7 @@ class MainWidget(BaseWidget) :
 
         self.player = Player(midi_lists, self.game_display, self.audio_ctrl)
         
-        self.paused = True
-        # keeps track of w and x being held so only releases when user releases last pressed
-        self.last_key_held = 0
-        
-        self.key_counts = {'top' : 0, 'mid' : 0, 'bot' : 0}
-        
-        self.i = 0
+        self.paused = True       
 
         self.xbox_buttons = {0: "dpad_up", 1: "dpad_down", 2: "dpad_left", 3: "dpad_right",
                              4: "start", 5: "back", 8: "LB", 9: "RB",
@@ -67,46 +61,24 @@ class MainWidget(BaseWidget) :
             self.audio_ctrl.toggle()
             self.paused = not self.paused
 
-        if keycode[1] in 'qwertyyuiop':
-            self.key_counts['top'] += 1
-            self.player.update_keys(self.key_counts)
-            self.player.fire('top')
+        if keycode[1] in 'qwertyuiop':
+            self.player.fire('top', keycode[1])
             
         if keycode[1] in 'asdfghjkl':
-            self.key_counts['mid'] += 1
-            self.player.update_keys(self.key_counts)
-            self.player.fire('mid')
+            self.player.fire('mid', keycode[1])
             
         if keycode[1] in 'zxcvbnm':
-            self.key_counts['bot'] += 1
-            self.player.update_keys(self.key_counts)
-            self.player.fire('bot')
-            
-        # if keycode[1] == 'w':
-        	# self.player.aim_top()
-        	# self.last_key_held = 'w'
-        # elif keycode[1] == 's':
-        	# self.player.aim_bottom()
-        	# self.last_key_held = 's'
+            self.player.fire('bot', keycode[1])
         
     def on_key_up(self, keycode):
         if keycode[1] in 'qwertyyuiop':
-            self.key_counts['top'] -= 1
-            self.player.update_keys(self.key_counts)
+            self.player.release('top', keycode[1])
             
         if keycode[1] in 'asdfghjkl':
-            self.key_counts['mid'] -= 1
-            self.player.update_keys(self.key_counts)
+            self.player.release('mid', keycode[1])
             
         if keycode[1] in 'zxcvbnm':
-            self.key_counts['bot'] -= 1
-            self.player.update_keys(self.key_counts)
-            
-    	# release aim if let go of last key held
-        # if keycode[1] == 'w' == self.last_key_held:
-        	# self.player.release_aim()
-        # elif keycode[1] == 's' == self.last_key_held:
-        	# self.player.release_aim()
+            self.player.release('bot', keycode[1])
 
     def on_touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks

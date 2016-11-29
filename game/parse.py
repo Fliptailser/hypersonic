@@ -13,23 +13,56 @@ def add_beat(structs, time, message, length, args):
         beats.append((beats[-1][0] + 1, time, beat_length))
         
             
-def add_bomb(structs, time, message, length, args):
+def add_reverse(structs, time, message, length, args):
     lane = args
     targets = structs['targets']
+    passives = structs['passive_targets']
     
-    targets.append(('bomb', lane, time, length))
+    targets.append(('reverse_start', lane, time))
+    for t in range(time, time + length, 80):
+        passives.append(('reverse', lane, t))
+    passives.append(('reverse_end', lane, time + length))
     
 def add_tap(structs, time, message, length, args):
     lane = args
     targets = structs['targets']
     
-    targets.append(('tap', lane, time, None))
+    targets.append(('tap', lane, time))
     
 def add_hold(structs, time, message, length, args):
     lane = args
     targets = structs['targets']
+    passives = structs['passive_targets']
     
-    targets.append(('hold', lane, time, length))
+    targets.append(('hold_start', lane, time))
+    for t in range(time, time + length, 80):
+        passives.append(('hold', lane, t))
+    passives.append(('hold_end', lane, time + length))
+    
+def add_gate(structs, time, message, length, args):
+    traces = structs['traces']
+    
+    traces.append(('gate', message.velocity / 127.0, time))
+    
+# TODO 
+def add_trail(structs, time, message, length, args):
+    is_chain = args
+    traces = structs['traces']
+    
+    y1 = message.velocity / 127.0
+    if is_chain:
+        # insert a ton of trails 80 ticks apart between this one and the previous one
+        last = traces[-1]
+        
+        y0 = last[1]
+        m = (y1 - y0) / (time - last[2])
+        for t in range(last[2] + 40, time, 40):
+            y0 += 40 * m
+            traces.append(('trail', y0, t))
+        
+    # insert of a ton of trails 80 ticks apart between the start and end ticks
+    for t in range(time, time + length, 40):
+        traces.append(('trail', y1, t))
 
 '''
     The key for getting game objects from MIDI notes.
@@ -39,17 +72,21 @@ MIDI_KEY = {
     48: (add_beat, True),
     51: (add_beat, False),
     
+    71: (add_gate, None),
+    70: (add_trail, False),
+    69: (add_trail, True),
+    
     68: (add_tap, 'top'),
     67: (add_hold, 'top'),
-    66: (add_bomb, 'top'),
+    66: (add_reverse, 'top'),
     
     65: (add_tap, 'mid'),
     64: (add_hold, 'mid'),
-    63: (add_bomb, 'mid'),
+    63: (add_reverse, 'mid'),
     
     62: (add_tap, 'bot'),
     61: (add_hold, 'bot'),
-    60: (add_bomb, 'bot')
+    60: (add_reverse, 'bot')
 }
        
 
@@ -63,7 +100,7 @@ MIDI_KEY = {
 def parse_MIDI_chart(song_name):
     mid = mido.MidiFile('../tracks/' + song_name + '.mid')
 
-    structs = {'targets' : [], 'signals' : [], 'beats' : [], 'tempo' : []}
+    structs = {'targets' : [], 'passive_targets' : [], 'traces': [], 'signals' : [], 'beats' : [], 'tempo' : []}
     
     # Get tempo data and create data for tempo mapping
     t = 0
