@@ -5,6 +5,7 @@ from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 from common.clock import *
 
 SPACESHIP_X = 100
+SPACESHIP_SRC = 'ship_blank.png'
 NOW_X = 300
 RET_X = 350 # TODO: see if need to update with song?
 WINDOW_SIZE = (1280, 720)
@@ -25,8 +26,7 @@ class Spaceship(InstructionGroup):
         self.max_y = 559
         self.min_y = 161
 
-        # TODO make it the image
-        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(140,80))
+        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(140,80), source=SPACESHIP_SRC)
         self.add(self.rect)
 
     def move_vertical(self, pos=None, step=0):

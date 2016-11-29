@@ -18,7 +18,7 @@ class Player(object):
         
         self.current_holds = []
 
-    def gain_health(self, amt=5):
+    def gain_health(self, amt=2.5):
         self.health += amt
         if self.health > 100:
             self.health = 100
