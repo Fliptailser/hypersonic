@@ -89,6 +89,7 @@ class Player(object):
     def release(self, lane, keycode):
         if self.current_holds[lane] == keycode:
             self.current_holds[lane] = None
+        self.display.release_beams(lane)
 
     def on_update(self):
         time = self.audio_ctrl.get_time()

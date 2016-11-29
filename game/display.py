@@ -155,15 +155,16 @@ class Beam(InstructionGroup):
         """
         This DOES NOT update update the points
         """
+        self.aim = aim
         if aim == 'mid':
             self.now_aim_y = 360
             self.reticle_y = 360
         elif aim == 'top':
-            self.now_aim_y = 360 + 180
-            self.reticle_y = 360 + 180
+            self.now_aim_y = 360 + 160
+            self.reticle_y = 360 + 160
         else:
-            self.now_aim_y = 360 - 180
-            self.reticle_y = 360 - 180
+            self.now_aim_y = 360 - 160
+            self.reticle_y = 360 - 160
 
     def update_points(self, ship_y):
         self.ship_y = ship_y
@@ -561,6 +562,15 @@ class GameDisplay(InstructionGroup):
         # TODO improve ship y position
         # self.beam.update_points(self.ship.y)
 
+    def release_beams(self, lane):
+        """
+        Releases all beams in a specified lane
+        """
+        for beam in self.beams:
+            if beam.aim == lane:
+                self.remove(beam)
+                self.beams.remove(beam)
+
     def get_targets_in_range(self, start_tick, end_tick):
         """
         Gets all of the targets within a tick range
@@ -576,9 +586,9 @@ class GameDisplay(InstructionGroup):
             beam.update_points(self.ship.y)  # make beam follow the ship
 
             # TODO see how to improve beam disappearance
-            if beam.t > 0.1:
-                self.remove(beam)
-                self.beams.remove(beam)
+            # if beam.t > 0.1:
+            #     self.remove(beam)
+            #     self.beams.remove(beam)
         # self.t += dt
         # tick = self.tempo_map.time_to_tick(self.t)
         
