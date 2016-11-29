@@ -164,7 +164,7 @@ class Beam(InstructionGroup):
 
     def update_points(self, ship_y):
         self.ship_y = ship_y
-        #self.blue_line.points = [self.ship_x, self.ship_y, NOW_X - 20, self.now_aim_y]
+        self.blue_line.points = [self.ship_x, self.ship_y, NOW_X - 20, self.now_aim_y]
         #self.red_line.points = [self.ship_x, ship_y, RET_X, self.reticle_y]
 
     def on_update(self, dt):
@@ -364,6 +364,9 @@ class GameDisplay(InstructionGroup):
     def on_update(self, dt):
         for beam in self.beams:
             beam.on_update(dt)
+            beam.update_points(self.ship.y)  # make beam follow the ship
+
+            # TODO see how to improve beam disappearance
             if beam.t > 0.1:
                 self.remove(beam)
                 self.beams.remove(beam)
