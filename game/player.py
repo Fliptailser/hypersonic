@@ -17,12 +17,12 @@ class Player(object):
         self.current_holds = {'top' : None, 'mid' : None, 'bot' : None}
 
     def gain_health(self, amt=1.5):
-        self.health += amt
+        self.health += amt*min(1, self.streak_multiplier/2)
         if self.health > 100:
             self.health = 100
         self.display.health.update_health(self.health)
 
-    def lose_health(self, amt=5):
+    def lose_health(self, amt=1):
         self.health -= amt
         if self.health < 0:
             self.health = 0
@@ -97,11 +97,17 @@ class Player(object):
         possible_misses = self.display.get_targets_in_range(miss_window[0], miss_window[1])
         for target in possible_misses:
             # TODO: send up penalties for missing
+            self.lose_health(amt=1)
+            self.streak = 0
+            self.streak_multiplier = 1
             self.display.miss_target(target)
             
         possible_misses_holds = self.display.get_passive_targets_in_range(miss_window[0], miss_window[1])
         for target in possible_misses_holds:
             # TODO: send up penalties for missing
+            self.lose_health(amt=1)
+            self.streak = 0
+            self.streak_multiplier = 1
             self.display.miss_target(target)
             
             

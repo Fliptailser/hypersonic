@@ -26,6 +26,7 @@ class Spaceship(InstructionGroup):
         self.max_y = 559
         self.min_y = 161
 
+        self.add(Color(rgb=[1.0, 1.0, 1.0]))  # get rid of blue tint on spaceship
         self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(SPACESHIP_WIDTH, 80), source=SPACESHIP_SRC)
         self.add(self.rect)
         
