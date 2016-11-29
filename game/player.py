@@ -3,9 +3,9 @@ class Player(object):
         super(Player, self).__init__()
         # player characteristics
         self.health = 50
-        self.max_streak = 0
         self.streak = 0
         self.streak_multiplier = 1
+        self.max_streak = 0
         self.score = 0
         self.aim = 'mid'
         self.holding_laser = False
@@ -18,7 +18,7 @@ class Player(object):
         
         self.current_holds = []
 
-    def gain_health(self, amt=2.5):
+    def gain_health(self, amt=1.5):
         self.health += amt
         if self.health > 100:
             self.health = 100
@@ -59,6 +59,7 @@ class Player(object):
         
     def fire(self, lane):
         time = self.audio_ctrl.get_time()
+        self.display.fire_beam(lane)
         slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
         possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
         hit = False
@@ -66,13 +67,19 @@ class Player(object):
         for target in possible_hits:
             if target.lane == lane:
                 self.display.hit_target(target)
-                self.score += 100 * self.streak_multiplier
                 hit = True
 
         if hit:
             self.gain_health()
+            self.streak += 1
+            if self.streak > self.max_streak:
+                self.max_streak = self.streak
+            self.streak_multiplier = int(self.streak/5)+1
+            self.score += 100 * self.streak_multiplier
         else:
             self.lose_health()
+            self.streak = 0
+            self.streak_multiplier = 1
         
             # if target.destroyed_with == 'laser' and is_laser and self.aim == target.lane:
                 # target.destroy()

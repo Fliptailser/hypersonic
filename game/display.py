@@ -5,6 +5,7 @@ from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 from common.clock import *
 
 SPACESHIP_X = 100
+SPACESHIP_WIDTH = 140
 SPACESHIP_SRC = 'ship_blank.png'
 NOW_X = 300
 RET_X = 350 # TODO: see if need to update with song?
@@ -26,7 +27,7 @@ class Spaceship(InstructionGroup):
         self.max_y = 559
         self.min_y = 161
 
-        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(140,80), source=SPACESHIP_SRC)
+        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(SPACESHIP_WIDTH, 80), source=SPACESHIP_SRC)
         self.add(self.rect)
 
     def move_vertical(self, pos=None, step=0):
@@ -142,9 +143,10 @@ class Beam(InstructionGroup):
         # self.red_line = Line(points=[ship_x, ship_y, RET_X, self.reticle_y], width=3)
         # self.add(self.red_line)
 
-        self.add(Color(rgb=[0.5, 0.5, 1], a=0.3))
-        #self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=3)
-        #self.add(self.blue_line)
+        self.add(Color(rgb=[0.35, 0.98, 1], a=0.3))
+        self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=3)
+        self.add(self.blue_line)
+        self.t = 0
 
     def set_aim(self, aim):
         """
@@ -166,7 +168,8 @@ class Beam(InstructionGroup):
         #self.red_line.points = [self.ship_x, ship_y, RET_X, self.reticle_y]
 
     def on_update(self, dt):
-        pass
+        self.t += dt
+        return self.t < 0.1
 
 
 class Target(InstructionGroup):
@@ -279,9 +282,23 @@ class GameDisplay(InstructionGroup):
         self.tempo_map = TempoMap(data=song_data['tempo'])
         self.targets = []
         self.beats = []
+        self.beams = []
         self.t = 0
         
         self.scroll = Translate(0, 0)
+
+        self.add(self.scroll)
+        # Add scrolling visuals
+        for beat in song_data['beats']:
+            self.add_beat_line(beat)
+            
+        for target in song_data['targets']:
+            self.add_target(target)
+
+        # handles undoing the scrolling so the rest of the visuals are on top and motionless
+        self.reverse_scroll = Translate(0, 0)
+        self.add(self.reverse_scroll)
+        self.add(Color(1,1,1))
         
         # Add non-scrolling visuals
 
@@ -293,8 +310,8 @@ class GameDisplay(InstructionGroup):
         self.add(self.health)
 
         # TODO improve ship's x and y position so laser comes out of ship instead of inside
-        self.beam = Beam(self.ship.x, self.ship.y)
-        self.add(self.beam)
+        # self.beam = Beam(self.ship.x, self.ship.y)
+        # self.add(self.beam)
 
         # TODO: separate object
         self.add(Color(rgb=[0.9,0.9,0.9]))
@@ -307,13 +324,7 @@ class GameDisplay(InstructionGroup):
         self.add(Line(width = 1, points=[2, 360 + 80 + 160, 1280, 360 + 80 + 160]))
         self.add(NowPillar())
         
-        self.add(self.scroll)
-        # Add scrolling visuals
-        for beat in song_data['beats']:
-            self.add_beat_line(beat)
-            
-        for target in song_data['targets']:
-            self.add_target(target)
+        
             
     def hit_target(self, target):
         self.targets.remove(target)
@@ -332,10 +343,17 @@ class GameDisplay(InstructionGroup):
         self.beats.append(beat)
         self.add(beat)
 
-    def set_aim(self, aim):
-        self.beam.set_aim(aim)
+    def fire_beam(self, lane):
+        """
+        Fires a beam in a direction
+        """
+        offset = 15
+        beam = Beam(self.ship.x+SPACESHIP_WIDTH/2-offset, self.ship.y, aim=lane)
+        self.add(beam)
+        self.beams.append(beam)
+        # self.beam.set_aim(aim)
         # TODO improve ship y position
-        self.beam.update_points(self.ship.y)
+        # self.beam.update_points(self.ship.y)
 
     def get_targets_in_range(self, start_tick, end_tick):
         """
@@ -344,7 +362,11 @@ class GameDisplay(InstructionGroup):
         return filter(lambda x: x.in_tick_range(start_tick, end_tick), self.targets)
     
     def on_update(self, dt):
-        pass
+        for beam in self.beams:
+            beam.on_update(dt)
+            if beam.t > 0.1:
+                self.remove(beam)
+                self.beams.remove(beam)
         # self.t += dt
         # tick = self.tempo_map.time_to_tick(self.t)
         
@@ -353,6 +375,7 @@ class GameDisplay(InstructionGroup):
     def set_scroll(self, time):
         
         self.scroll.x = - self.tempo_map.time_to_tick(time) * PIXELS_PER_TICK
+        self.reverse_scroll.x = -self.scroll.x
      
 
 
