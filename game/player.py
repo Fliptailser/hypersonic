@@ -14,8 +14,6 @@ class Player(object):
         self.beats = midi_data['beats']
         self.targets = display.targets
         
-        self.current_holds = {'top' : None, 'mid' : None, 'bot' : None}
-
     def gain_health(self, amt=1.5):
         self.health += amt*min(1, self.streak_multiplier/2)
         if self.health > 100:
@@ -68,7 +66,7 @@ class Player(object):
             if target.lane == lane:
                 points, hold = self.display.hit_target(target)
                 if hold:
-                    self.current_holds[lane] = keycode
+                    self.display.current_holds[lane] = keycode
                 
                 hit = True
                 break
@@ -81,14 +79,14 @@ class Player(object):
             self.streak_multiplier = int(self.streak/5)+1
             self.score += points * self.streak_multiplier
         else:
-            self.current_holds[lane] = None
+            self.display.current_holds[lane] = None
             self.lose_health()
             self.streak = 0
             self.streak_multiplier = 1
         
     def release(self, lane, keycode):
-        if self.current_holds[lane] == keycode:
-            self.current_holds[lane] = None
+        if self.display.current_holds[lane] == keycode:
+            self.display.current_holds[lane] = None
         self.display.release_beams(lane)
 
     def on_update(self):
@@ -113,10 +111,10 @@ class Player(object):
             
         hold_window = (self.audio_ctrl.time_to_tick(time - 0.1), self.audio_ctrl.time_to_tick(time - 0.05))
         for hold in self.display.get_passive_targets_in_range(hold_window[0], hold_window[1]):
-            if self.current_holds[hold.lane] != None:
+            if self.display.current_holds[hold.lane] != None:
                 points, end_hold = self.display.hit_target(hold)
                 if end_hold:
-                    self.current_holds[hold.lane] = None
+                    self.display.current_holds[hold.lane] = None
                 self.score += points * self.streak_multiplier
             
             

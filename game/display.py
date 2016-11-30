@@ -131,16 +131,16 @@ class Rocket(InstructionGroup):
 
 class Beam(InstructionGroup):
     """
-    This is the object that shows where the ship is aiming.
+    This is the object that shows which lane the ship is aiming at.
     """
 
-    def __init__(self, ship_x, ship_y, aim='mid'):
+    def __init__(self, ship_x, ship_y, lane='mid'):
         super(Beam, self).__init__()
 
         self.ship_x = ship_x
         self.ship_y = ship_y
 
-        self.set_aim(aim)
+        self.set_lane(lane)
 
         # add red first so that blue is on top
         # self.add(Color(rgb=[1, 0.5, 0.5], a=0.3))
@@ -152,15 +152,15 @@ class Beam(InstructionGroup):
         self.add(self.blue_line)
         self.t = 0
 
-    def set_aim(self, aim):
+    def set_lane(self, lane):
         """
         This DOES NOT update update the points
         """
-        self.aim = aim
-        if aim == 'mid':
+        self.lane = lane
+        if lane == 'mid':
             self.now_aim_y = 360
             self.reticle_y = 360
-        elif aim == 'top':
+        elif lane == 'top':
             self.now_aim_y = 360 + 160
             self.reticle_y = 360 + 160
         else:
@@ -479,6 +479,7 @@ class GameDisplay(InstructionGroup):
         self.traces = []
         self.beats = []
         self.beams = []
+        self.current_holds = {'top' : None, 'mid' : None, 'bot' : None}
         self.t = 0
         
         self.scroll = Translate(0, 0)
@@ -556,7 +557,7 @@ class GameDisplay(InstructionGroup):
         Fires a beam in a direction
         """
         offset = 15
-        beam = Beam(self.ship.x+SPACESHIP_WIDTH/2-offset, self.ship.y, aim=lane)
+        beam = Beam(self.ship.x+SPACESHIP_WIDTH/2-offset, self.ship.y, lane=lane)
         self.add(beam)
         self.beams.append(beam)
         # self.beam.set_aim(aim)
@@ -568,7 +569,7 @@ class GameDisplay(InstructionGroup):
         Releases all beams in a specified lane
         """
         for beam in self.beams:
-            if beam.aim == lane:
+            if beam.lane == lane:
                 self.remove(beam)
                 self.beams.remove(beam)
 
@@ -587,9 +588,9 @@ class GameDisplay(InstructionGroup):
             beam.update_points(self.ship.y)  # make beam follow the ship
 
             # TODO see how to improve beam disappearance
-            # if beam.t > 0.1:
-            #     self.remove(beam)
-            #     self.beams.remove(beam)
+            if beam.t > 0.1 and self.current_holds[beam.lane] is None:
+                self.remove(beam)
+                self.beams.remove(beam)
         # self.t += dt
         # tick = self.tempo_map.time_to_tick(self.t)
         
