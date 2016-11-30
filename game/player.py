@@ -15,7 +15,7 @@ class Player(object):
         self.targets = display.targets
         
     def gain_health(self, amt=1.5):
-        self.health += amt*min(1, self.streak_multiplier/2)
+        self.health += amt*(self.streak_multiplier/2.+1)
         if self.health > 100:
             self.health = 100
         self.display.health.update_health(self.health)
@@ -50,7 +50,7 @@ class Player(object):
         Moves the spaceship based on joystick motion
         emphasis: what percent of a full step should be taken (can be pos or neg)
         """
-        step = int(15*emphasis)
+        step = int(20*emphasis)
         self.display.ship.move_vertical(step=step)
         
     def fire(self, lane, keycode):
@@ -80,7 +80,7 @@ class Player(object):
             self.score += points * self.streak_multiplier
         else:
             self.display.current_holds[lane] = None
-            self.lose_health()
+            self.lose_health(amt=1)
             self.streak = 0
             self.streak_multiplier = 1
         
@@ -96,7 +96,7 @@ class Player(object):
         # check for targets that have missed the slop window
         for target in possible_misses:
             # TODO: send up penalties for missing
-            self.lose_health(amt=1)
+            self.lose_health(amt=4)
             self.streak = 0
             self.streak_multiplier = 1
             self.display.miss_target(target)
@@ -105,17 +105,18 @@ class Player(object):
         # check for hold stuff that has missed the slop window
         for target in possible_misses_holds:
             # TODO: send up penalties for missing
-            self.lose_health(amt=1)
-            self.streak = 0
-            self.streak_multiplier = 1
+            if self.display.current_holds[target.lane] is not None:
+                keycode = self.display.current_holds[target.lane]
+                self.release(target.lane, keycode)
+                self.lose_health(amt=1)
+                self.streak = 0
+                self.streak_multiplier = 1
             self.display.miss_target(target)
             
         possible_misses_traces = self.display.get_traces_in_range(miss_window[0], miss_window[1])
         # check for traces that have missed the slop window
         for trace in possible_misses_traces:
             self.lose_health(amt=1)
-            self.streak = 0
-            self.streak_multiplier = 1
             self.display.miss_target(trace)
             
         hold_window = (self.audio_ctrl.time_to_tick(time - 0.1), self.audio_ctrl.time_to_tick(time - 0.05))

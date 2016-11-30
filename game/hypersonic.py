@@ -108,7 +108,7 @@ class MainWidget(BaseWidget) :
             if button == 'Y':
                 self.player.fire('top', button)
                 
-            if button == 'B':
+            if button in ['X', 'B']:
                 self.player.fire('mid', button)
                 
             if button == 'A':
@@ -125,7 +125,8 @@ class MainWidget(BaseWidget) :
             if button == 'Y':
                 self.player.release('top', button)
                 
-            if button == 'B':
+            if button in ['X', 'B']:
+                print "pressed"
                 self.player.release('mid', button)
                 
             if button == 'A':
@@ -158,6 +159,9 @@ class MainWidget(BaseWidget) :
 
             # move with left joystick
             if self.controller_found:
+                # get rid of slight unintentional movement by making a threshold it needs to hit
+                if abs(self.left_joystick_y) < 0.2:
+                    self.left_joystick_y = 0
                 self.player.joystick_move(self.left_joystick_y)
             # move with the mouse
             else:
