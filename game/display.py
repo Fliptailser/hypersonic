@@ -51,6 +51,10 @@ class Spaceship(InstructionGroup):
         self.rect.pos = (self.x-80, self.y-40)
         self.cursor_rect.pos = (NOW_X - 20 - 5, self.y-50)
 
+    # pos from 0.0 to 1.0
+    def get_pos(self):
+        return (self.y - 120) / 480.0
+        
     def on_update(self, dt):
         pass
 
@@ -419,14 +423,22 @@ class Gate(InstructionGroup):
         self.add(self.color)
         self.width = 40 * PIXELS_PER_TICK
         self.height = 20
-        self.shape = Rectangle(pos=(self.x, self.y - 0.5 * self.height), size=(self.width, self.height))
+        
+        self.shape = Rectangle(pos=(-20, -20), size=(40, 40))
+        
+        self.add(PushMatrix())
+        self.add(Translate(self.x, self.y))
+        self.add(Rotate(angle=45))
         self.add(self.shape)
+        self.add(PopMatrix())
 
     def in_tick_range(self, start_tick, end_tick):
         return start_tick < self.tick < end_tick
 
     def hit(self):
-        pass 
+        self.color.a = 0
+        self.is_hit = True
+        return 100
         
     def miss(self):
         self.is_hit = True
@@ -450,8 +462,14 @@ class Trail(InstructionGroup):
         self.add(self.color)
         self.width = 40 * PIXELS_PER_TICK
         self.height = 20
-        self.shape = Rectangle(pos=(self.x, self.y - 0.5 * self.height), size=(self.width, self.height))
+        
+        self.shape = Rectangle(pos=(-15, -15), size=(30, 30))
+        
+        self.add(PushMatrix())
+        self.add(Translate(self.x, self.y))
+        self.add(Rotate(angle=45))
         self.add(self.shape)
+        self.add(PopMatrix())
 
     def destroy(self):
         pass
@@ -460,10 +478,13 @@ class Trail(InstructionGroup):
         return start_tick < self.tick < end_tick
 
     def hit(self):
-        pass 
+        self.color.a = 0
+        self.is_hit = True
+        return 10
         
     def miss(self):
-        pass
+        self.is_hit = True
+        self.color.rgb = [0.5, 0.5, 0.5]
         
     def on_update(self, dt):
         pass
@@ -514,6 +535,8 @@ class GameDisplay(InstructionGroup):
             
         for target in song_data['targets']:
             self.add_target(target)
+            
+        
         self.add(PopMatrix())    
         
         # ship
@@ -581,6 +604,9 @@ class GameDisplay(InstructionGroup):
     
     def get_passive_targets_in_range(self, start_tick, end_tick):
         return filter(lambda x: x.in_tick_range(start_tick, end_tick) and not x.is_hit, self.passive_targets)
+        
+    def get_traces_in_range(self, start_tick, end_tick):
+        return filter(lambda x: x.in_tick_range(start_tick, end_tick) and not x.is_hit, self.traces)
     
     def on_update(self, dt):
         for beam in self.beams:

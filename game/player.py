@@ -93,6 +93,7 @@ class Player(object):
         time = self.audio_ctrl.get_time()
         miss_window = (self.audio_ctrl.time_to_tick(time-0.2), self.audio_ctrl.time_to_tick(time-0.1))
         possible_misses = self.display.get_targets_in_range(miss_window[0], miss_window[1])
+        # check for targets that have missed the slop window
         for target in possible_misses:
             # TODO: send up penalties for missing
             self.lose_health(amt=1)
@@ -101,6 +102,7 @@ class Player(object):
             self.display.miss_target(target)
             
         possible_misses_holds = self.display.get_passive_targets_in_range(miss_window[0], miss_window[1])
+        # check for hold stuff that has missed the slop window
         for target in possible_misses_holds:
             # TODO: send up penalties for missing
             self.lose_health(amt=1)
@@ -108,13 +110,29 @@ class Player(object):
             self.streak_multiplier = 1
             self.display.miss_target(target)
             
+        possible_misses_traces = self.display.get_traces_in_range(miss_window[0], miss_window[1])
+        # check for traces that have missed the slop window
+        for trace in possible_misses_traces:
+            self.lose_health(amt=1)
+            self.streak = 0
+            self.streak_multiplier = 1
+            self.display.miss_target(trace)
             
         hold_window = (self.audio_ctrl.time_to_tick(time - 0.1), self.audio_ctrl.time_to_tick(time - 0.05))
+        # check the timing window for held notes
         for hold in self.display.get_passive_targets_in_range(hold_window[0], hold_window[1]):
             if self.display.current_holds[hold.lane] != None:
                 points, end_hold = self.display.hit_target(hold)
                 if end_hold:
                     self.display.current_holds[hold.lane] = None
+                self.score += points * self.streak_multiplier
+                
+        # check the  timing window for trace notes
+        ship_pos = self.display.ship.get_pos()
+        for trace in self.display.get_traces_in_range(hold_window[0], hold_window[1]):
+            
+            if (ship_pos - 0.1) <= trace.pos <= (ship_pos + 0.1):
+                points = self.display.hit_target(trace)
                 self.score += points * self.streak_multiplier
             
             
