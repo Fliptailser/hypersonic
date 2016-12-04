@@ -19,12 +19,14 @@ class Player(object):
         if self.health > 100:
             self.health = 100
         self.display.health.update_health(self.health)
+        self.display.ship.update_ps_from_health(self.health)
 
     def lose_health(self, amt=1):
         self.health -= amt
         if self.health < 0:
             self.health = 0
         self.display.health.update_health(self.health)
+        self.display.ship.update_ps_from_health(self.health)
 
     def get_health(self):
         return self.health
@@ -71,9 +73,6 @@ class Player(object):
                 hit = True
                 break
 
-        # show that a laser was fired
-        self.display.fire_beam(lane, hit)
-
         if hit:
             self.gain_health()
             self.streak += 1
@@ -86,6 +85,9 @@ class Player(object):
             self.lose_health(amt=1)
             self.streak = 0
             self.streak_multiplier = 1
+
+        # show that a laser was fired
+        self.display.fire_beam(lane, hit)
         
     def release(self, lane, keycode):
         if self.display.current_holds[lane] == keycode:

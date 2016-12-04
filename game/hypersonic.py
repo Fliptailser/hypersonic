@@ -7,6 +7,7 @@ from common.wavegen import *
 from common.wavesrc import *
 from common.clock import *
 from common.gfxutil import *
+from common.kivyparticle import *
 from kivy.core.window import Window
 from ConfigParser import ConfigParser
 
@@ -14,7 +15,6 @@ import parse
 import display
 from audioctrl import AudioController
 from player import *
-
 
 from kivy.clock import Clock as kivyClock
 
@@ -40,12 +40,19 @@ class MainWidget(BaseWidget) :
         self.add_widget(self.streak_label)
         self.add_widget(self.multiplier_label)
 
+        # set up particle system for thrusters
+        self.ps_top = ParticleSystem('../particle/particle.pex')
+        self.ps_bottom = ParticleSystem('../particle/particle.pex')
+        self.ps_on = False
+        self.add_widget(self.ps_top)
+        self.add_widget(self.ps_bottom)
+
         song_path = '../assets/' + PROTOTYPE_SONG + '.wav'
         self.audio_ctrl = AudioController(song_path, midi_lists['tempo'])
 
         self.tempo_map = TempoMap(data=midi_lists['tempo'])
         self.display_objects = AnimGroup()
-        self.game_display = display.GameDisplay(midi_lists)
+        self.game_display = display.GameDisplay(midi_lists, self.ps_top, self.ps_bottom)
         self.display_objects.add(self.game_display)
         self.canvas.add(self.display_objects)
 
@@ -64,6 +71,7 @@ class MainWidget(BaseWidget) :
         if keycode[1] == 'spacebar':
             self.audio_ctrl.toggle()
             self.paused = not self.paused
+            self.toggle_ps()
 
         if not self.paused:
             if keycode[1] in 'qwertyuiop':
@@ -88,7 +96,8 @@ class MainWidget(BaseWidget) :
 
     def on_touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
-        print touch.button
+        # print touch.button
+        pass
 
     def on_touch_up(self, touch):
         pass
@@ -103,6 +112,7 @@ class MainWidget(BaseWidget) :
         if button == 'start':
             self.audio_ctrl.toggle()
             self.paused = not self.paused
+            self.toggle_ps()
 
         if not self.paused:
             if button == 'Y':
@@ -145,6 +155,15 @@ class MainWidget(BaseWidget) :
         if axis_id == 1:
             # negative value positive percent is down
             self.left_joystick_y = -value
+
+    def toggle_ps(self):
+        self.ps_on = not self.ps_on
+        if self.ps_on:
+            self.ps_top.start()
+            self.ps_bottom.start()
+        else:
+            self.ps_top.stop()
+            self.ps_bottom.stop()
         
     def on_update(self):
         self.score_label.text = str(self.player.score)

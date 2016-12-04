@@ -264,7 +264,7 @@ class ParticleSystem(Widget):
         start_color = random_color_variance(self.start_color, self.start_color_variance)
         end_color = random_color_variance(self.end_color, self.end_color_variance)
 
-        particle.color_delta = [(end_color[i] - start_color[i]) / life_span for i in range(4)]
+        particle.color_delta = [(end_color[i] - start_color[i]) / life_span for i in xrange(4)]
         particle.color = start_color
 
         # rotation
@@ -314,13 +314,13 @@ class ParticleSystem(Widget):
         particle.scale += particle.scale_delta * passed_time
         particle.rotation += particle.rotation_delta * passed_time
 
-        particle.color = [particle.color[i] + particle.color_delta[i] * passed_time for i in range(4)]
+        particle.color = [particle.color[i] + particle.color_delta[i] * passed_time for i in xrange(4)]
 
     def _raise_capacity(self, by_amount):
         old_capacity = self.capacity
         new_capacity = min(self.max_capacity, self.capacity + by_amount)
 
-        for i in range(int(new_capacity - old_capacity)):
+        for i in xrange(int(new_capacity - old_capacity)):
             self.particles.append(self._create_particle())
 
         self.num_particles = int(new_capacity)
@@ -328,9 +328,9 @@ class ParticleSystem(Widget):
 
     def _lower_capacity(self, by_amount):
         old_capacity = self.capacity
-        new_capacity = max(0, self.capacity - by_amount)
+        new_capacity = int(max(0, self.capacity - by_amount))
 
-        for i in range(int(old_capacity - new_capacity)):
+        for i in xrange(int(old_capacity - new_capacity)):
             try:
                 self.canvas.remove(self.particles_dict[self.particles.pop()]['rect'])
             except:
@@ -339,17 +339,26 @@ class ParticleSystem(Widget):
         self.num_particles = int(new_capacity)
         self.capacity = new_capacity
 
+    def _remove_particle(self, particle):
+        try:
+            self.canvas.remove(self.particles_dict[particle]['rect'])
+        except:
+            pass
+
     def _advance_time(self, passed_time):
         particle_index = 0
 
         # advance existing particles
         while particle_index < self.num_particles:
-            particle = self.particles[particle_index]
+            try:
+                particle = self.particles[particle_index]
+            except:
+                break
             if particle.current_time < particle.total_time:
                 self._advance_particle(particle, passed_time)
                 particle_index += 1
             else:
-                if particle_index != self.num_particles - 1:
+                if particle_index != self.num_particles - 1 and self.num_particles-1 < len(self.particles):
                     next_particle = self.particles[self.num_particles - 1]
                     self.particles[self.num_particles - 1] = particle
                     self.particles[particle_index] = next_particle
@@ -363,7 +372,7 @@ class ParticleSystem(Widget):
             self.frame_time += passed_time
 
             while self.frame_time > 0:
-                if self.num_particles < self.max_capacity:
+                if self.num_particles < self.max_capacity and self.num_particles < len(self.particles):
                     if self.num_particles == self.capacity:
                         self._raise_capacity(self.capacity)
 
@@ -380,7 +389,7 @@ class ParticleSystem(Widget):
     def _render(self):
         if self.num_particles == 0:
             return
-        for i in range(self.num_particles):
+        for i in xrange(len(self.particles)):
             particle = self.particles[i]
             size = (self.texture.size[0] * particle.scale, self.texture.size[1] * particle.scale)
             if particle not in self.particles_dict:

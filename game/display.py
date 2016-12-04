@@ -6,6 +6,7 @@ from common.clock import *
 
 SPACESHIP_X = 100
 SPACESHIP_WIDTH = 140
+SPACESHIP_HEIGHT = 80
 SPACESHIP_SRC = 'ship_blank.png'
 NOW_X = 300
 WINDOW_SIZE = (1280, 720)
@@ -19,7 +20,7 @@ class Spaceship(InstructionGroup):
     The spaceship that the user controls.
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, ps_top, ps_bottom):
         super(Spaceship, self).__init__()
         self.x = x
         self.y = y
@@ -27,12 +28,18 @@ class Spaceship(InstructionGroup):
         self.min_y = 161
 
         self.add(Color(rgb=[1.0, 1.0, 1.0]))  # get rid of blue tint on spaceship
-        self.rect = Rectangle(pos=(self.x-80, self.y-40), size=(SPACESHIP_WIDTH, 80), source=SPACESHIP_SRC)
+        self.rect = Rectangle(pos=(self.x-SPACESHIP_WIDTH/2, self.y-SPACESHIP_HEIGHT/2), size=(SPACESHIP_WIDTH, SPACESHIP_HEIGHT), source=SPACESHIP_SRC)
         self.add(self.rect)
         
         self.add(Color(rgb=[1.0, 1.0, 1.0]))
         self.cursor_rect = Rectangle(pos=[NOW_X - 20 - 5, self.y - 50], size=[10, 100])
         self.add(self.cursor_rect)
+
+        # particle system stuffs
+        self.ps_top = ps_top
+        self.ps_bottom = ps_bottom
+        self.set_ps_pos()
+        self.update_ps_from_health(50)
 
     def move_vertical(self, pos=None, step=0):
         """
@@ -48,12 +55,29 @@ class Spaceship(InstructionGroup):
         elif self.y < self.min_y:
             self.y = self.min_y
 
-        self.rect.pos = (self.x-80, self.y-40)
+        self.rect.pos = (self.x-SPACESHIP_WIDTH/2, self.y-SPACESHIP_HEIGHT/2)
         self.cursor_rect.pos = (NOW_X - 20 - 5, self.y-50)
+
+        self.set_ps_pos()
+        
 
     # pos from 0.0 to 1.0
     def get_pos(self):
         return (self.y - 120) / 480.0
+
+    def set_ps_pos(self):
+        self.ps_top.emitter_x = self.x-20
+        self.ps_top.emitter_y = self.y+SPACESHIP_HEIGHT/4
+        self.ps_bottom.emitter_x = self.x-20
+        self.ps_bottom.emitter_y = self.y-SPACESHIP_HEIGHT/4
+
+    def update_ps_from_health(self, health):
+        """
+        Updates the appearance of the particle system based on health
+        """
+        percent = min(health/100., 1)
+        self.ps_top.max_num_particles = self.ps_bottom.max_num_particles = percent*130+20
+
         
     def on_update(self, dt):
         pass
@@ -502,7 +526,7 @@ class Trail(InstructionGroup):
 
 class GameDisplay(InstructionGroup):
 
-    def __init__(self, song_data):
+    def __init__(self, song_data, ps_top, ps_bottom):
         super(GameDisplay, self).__init__()
 
         self.tempo_map = TempoMap(data=song_data['tempo'])
@@ -551,7 +575,7 @@ class GameDisplay(InstructionGroup):
         self.add(PopMatrix())    
         
         # ship
-        self.ship = Spaceship(SPACESHIP_X, 360)
+        self.ship = Spaceship(SPACESHIP_X, 360, ps_top, ps_bottom)
         self.add(self.ship)
             
     def hit_target(self, target):
