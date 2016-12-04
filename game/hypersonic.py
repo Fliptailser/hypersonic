@@ -126,7 +126,6 @@ class MainWidget(BaseWidget) :
                 self.player.release('top', button)
                 
             if button in ['X', 'B']:
-                print "pressed"
                 self.player.release('mid', button)
                 
             if button == 'A':

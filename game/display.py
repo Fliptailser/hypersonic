@@ -138,28 +138,39 @@ class Beam(InstructionGroup):
     This is the object that shows which lane the ship is aiming at.
     """
 
-    def __init__(self, ship_x, ship_y, lane='mid'):
+    def __init__(self, ship_x, ship_y, lane='mid', hit=False):
         super(Beam, self).__init__()
 
         self.ship_x = ship_x
         self.ship_y = ship_y
 
-        self.set_lane(lane)
+        self.color = Color(rgb=[0.35, 0.98, 1], a=0.3)        
+        self.add(self.color)
+        self.set_lane(lane, hit)
 
         # add red first so that blue is on top
         # self.add(Color(rgb=[1, 0.5, 0.5], a=0.3))
         # self.red_line = Line(points=[ship_x, ship_y, RET_X, self.reticle_y], width=3)
         # self.add(self.red_line)
-
-        self.add(Color(rgb=[0.35, 0.98, 1], a=0.3))
+        
         self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=3)
         self.add(self.blue_line)
         self.t = 0
 
-    def set_lane(self, lane):
+    def set_lane(self, lane, hit=False):
         """
         This DOES NOT update update the points
         """
+        colors = {'mid': [0.90, 0.11, 0.11],
+                  'top': [0.98, 0.89, 0.17],
+                  'bot': [0.04, 0.78, 0.33]}
+
+        if hit and lane in colors:
+            self.color.rgb = colors[lane]
+        else:
+            # default bright blue
+            self.color.rgb = [0.35, 0.98, 1]
+
         self.lane = lane
         if lane == 'mid':
             self.now_aim_y = 360
@@ -575,12 +586,14 @@ class GameDisplay(InstructionGroup):
         self.beats.append(beat)
         self.add(beat)
 
-    def fire_beam(self, lane):
+    def fire_beam(self, lane, hit):
         """
         Fires a beam in a direction
+        lane: {'top', 'mid', 'bot'} lane of beam
+        hit: True if hit something
         """
         offset = 15
-        beam = Beam(self.ship.x+SPACESHIP_WIDTH/2-offset, self.ship.y, lane=lane)
+        beam = Beam(self.ship.x+SPACESHIP_WIDTH/2-offset, self.ship.y, lane=lane, hit=hit)
         self.add(beam)
         self.beams.append(beam)
         # self.beam.set_aim(aim)

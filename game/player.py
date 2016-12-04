@@ -56,7 +56,7 @@ class Player(object):
     def fire(self, lane, keycode):
         
         time = self.audio_ctrl.get_time()
-        self.display.fire_beam(lane)
+        
         slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
         possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
         hit = False
@@ -70,6 +70,9 @@ class Player(object):
                 
                 hit = True
                 break
+
+        # show that a laser was fired
+        self.display.fire_beam(lane, hit)
 
         if hit:
             self.gain_health()
