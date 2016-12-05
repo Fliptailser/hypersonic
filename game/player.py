@@ -96,6 +96,9 @@ class Player(object):
 
     def on_update(self):
         time = self.audio_ctrl.get_time()
+        
+        self.display.check_signals(time)
+        
         miss_window = (self.audio_ctrl.time_to_tick(time-0.2), self.audio_ctrl.time_to_tick(time-0.1))
         possible_misses = self.display.get_targets_in_range(miss_window[0], miss_window[1])
         # check for targets that have missed the slop window

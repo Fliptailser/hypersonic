@@ -63,6 +63,12 @@ def add_trail(structs, time, message, length, args):
     # insert of a ton of trails 80 ticks apart between the start and end ticks
     for t in range(time, time + length, 40):
         traces.append(('trail', y1, t))
+        
+def add_bump(structs, time, message, length, args):
+    signals = structs['signals']
+    
+    signals.append(('bump', message.velocity / 127.0 * 25, time))
+        
 
 '''
     The key for getting game objects from MIDI notes.
@@ -86,7 +92,9 @@ MIDI_KEY = {
     
     62: (add_tap, 'bot'),
     61: (add_hold, 'bot'),
-    60: (add_reverse, 'bot')
+    60: (add_reverse, 'bot'),
+    
+    36: (add_bump, None)
 }
        
 

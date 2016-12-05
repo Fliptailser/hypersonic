@@ -523,6 +523,22 @@ class Trail(InstructionGroup):
         
     def on_update(self, dt):
         pass
+        
+class Bump(object):
+    def __init__(self, v, tick, callback):
+        self.v = v
+        self.tick = tick
+        self.callback = callback
+        self.is_hit = False
+        
+    def in_tick_range(self, start_tick, end_tick):
+        return start_tick < self.tick < end_tick
+        
+        
+    def hit(self):
+        self.is_hit = True
+        self.callback(self.v)
+    
 
 class GameDisplay(InstructionGroup):
 
@@ -532,13 +548,22 @@ class GameDisplay(InstructionGroup):
         self.tempo_map = TempoMap(data=song_data['tempo'])
         self.targets = [] # taps and hold_start
         self.passive_targets = [] # hold and hold_end
+        self.signals = []
         self.traces = []
         self.beats = []
         self.beams = []
         self.current_holds = {'top' : None, 'mid' : None, 'bot' : None}
         self.t = 0
         
+        for signal in song_data['signals']:
+            self.add_signal(signal)
+        
         self.scroll = Translate(0, 0)
+        self.bump = Translate(0, 0)
+        self.bump_target = 0
+        
+        self.add(self.bump)
+        
         
         # Health Bar
         self.health = HealthBar()
@@ -609,7 +634,18 @@ class GameDisplay(InstructionGroup):
         beat = BeatLine(count, tick)
         self.beats.append(beat)
         self.add(beat)
+        
+    def add_signal(self, signal_data):
+        kind, v, tick = signal_data
+        # todo: sloppy - not generalized
+        params = {'bump': (Bump, self.screen_bump)}[kind]
+        signal = params[0](v, tick, params[1])
+        self.signals.append(signal)
 
+    def screen_bump(self, v):
+        self.bump.y = 0
+        self.bump_target = v
+        
     def fire_beam(self, lane, hit):
         """
         Fires a beam in a direction
@@ -632,6 +668,7 @@ class GameDisplay(InstructionGroup):
             if beam.lane == lane:
                 self.remove(beam)
                 self.beams.remove(beam)
+                
 
     def get_targets_in_range(self, start_tick, end_tick):
         """
@@ -645,7 +682,18 @@ class GameDisplay(InstructionGroup):
     def get_traces_in_range(self, start_tick, end_tick):
         return filter(lambda x: x.in_tick_range(start_tick, end_tick) and not x.is_hit, self.traces)
     
+    def check_signals(self, time):
+        trigger_window = (self.tempo_map.time_to_tick(time - 0.1), self.tempo_map.time_to_tick(time))
+        for signal in filter(lambda x: x.in_tick_range(*trigger_window) and not x.is_hit, self.signals):
+            signal.hit()
+    
     def on_update(self, dt):
+        if self.bump.y < self.bump_target:
+            self.bump.y += self.bump_target / 2.
+        else:
+            self.bump_target = 0
+            self.bump.y /= 2
+            
         for beam in self.beams:
             beam.on_update(dt)
             beam.update_points(self.ship.y)  # make beam follow the ship

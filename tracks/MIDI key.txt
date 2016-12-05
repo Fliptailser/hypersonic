@@ -33,7 +33,4 @@ Signals (controls under the hood for game or visuals)
 51	UPBEAT
 48	DOWNBEAT
 
-
-TODO:
-Ship Exhaust signal
-Bass Bump signal
+36	BUMP
