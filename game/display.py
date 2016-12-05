@@ -92,6 +92,9 @@ class HealthBar(InstructionGroup):
         self.x_base = 375
         self.y_base = 620
 
+        # make sure it's white
+        self.add(Color(rgb=[1,1,1]))
+
         self.outside_rect = Rectangle(pos=(self.x_base, 620), size=(400,60))
         self.add(self.outside_rect)
 

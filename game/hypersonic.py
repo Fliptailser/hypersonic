@@ -62,7 +62,8 @@ class MainWidget(BaseWidget) :
 
         self.xbox_buttons = {0: "dpad_up", 1: "dpad_down", 2: "dpad_left", 3: "dpad_right",
                              4: "start", 5: "back", 8: "LB", 9: "RB",
-                             11: "A", 12: "B", 13: "X", 14: "Y"}
+                             11: "A", 12: "B", 13: "X", 14: "Y",
+                             7: "right_joy", 6: "left_joy"}
 
         self.left_joystick_y = 0
         
@@ -107,7 +108,21 @@ class MainWidget(BaseWidget) :
         XBOX controller buttons down
         """
         # print "down", buttonid
-        button = self.xbox_buttons[buttonid]
+        try:
+            button = self.xbox_buttons[buttonid]
+        except:
+            # ERROR: button can't be found
+            return
+        """
+        clicked joystick TODO
+
+        bass powerup
+
+        3 stage spaceship health
+
+        laser bounce back at ship on miss?
+
+        """
 
         if button == 'start':
             self.audio_ctrl.toggle()
@@ -130,7 +145,11 @@ class MainWidget(BaseWidget) :
         XBOX controller buttons up
         """
         # print "up", buttonid
-        button = self.xbox_buttons[buttonid]
+        try:
+            button = self.xbox_buttons[buttonid]
+        except:
+            # button can't be found
+            return
         if not self.paused:
             if button == 'Y':
                 self.player.release('top', button)
