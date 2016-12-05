@@ -20,12 +20,13 @@ class Spaceship(InstructionGroup):
     The spaceship that the user controls.
     """
 
-    def __init__(self, x, y, ps_top, ps_bottom):
+    def __init__(self, x, y, ps_top, ps_bottom, parent_disp):
         super(Spaceship, self).__init__()
         self.x = x
         self.y = y
         self.max_y = 559
         self.min_y = 161
+        self.parent_disp = parent_disp
 
         self.add(Color(rgb=[1.0, 1.0, 1.0]))  # get rid of blue tint on spaceship
         self.rect = Rectangle(pos=(self.x-SPACESHIP_WIDTH/2, self.y-SPACESHIP_HEIGHT/2), size=(SPACESHIP_WIDTH, SPACESHIP_HEIGHT), source=SPACESHIP_SRC)
@@ -67,9 +68,9 @@ class Spaceship(InstructionGroup):
 
     def set_ps_pos(self):
         self.ps_top.emitter_x = self.x-20
-        self.ps_top.emitter_y = self.y+SPACESHIP_HEIGHT/4
-        self.ps_bottom.emitter_x = self.x-20
-        self.ps_bottom.emitter_y = self.y-SPACESHIP_HEIGHT/4
+        self.ps_top.emitter_y = self.y+SPACESHIP_HEIGHT/4  + self.parent_disp.y
+        self.ps_bottom.emitter_x = self.x-20 
+        self.ps_bottom.emitter_y = self.y-SPACESHIP_HEIGHT/4  + self.parent_disp.y
 
     def update_ps_from_health(self, health):
         """
@@ -600,7 +601,7 @@ class GameDisplay(InstructionGroup):
         self.add(PopMatrix())    
         
         # ship
-        self.ship = Spaceship(SPACESHIP_X, 360, ps_top, ps_bottom)
+        self.ship = Spaceship(SPACESHIP_X, 360, ps_top, ps_bottom, self.bump)
         self.add(self.ship)
             
     def hit_target(self, target):
