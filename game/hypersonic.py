@@ -66,13 +66,17 @@ class MainWidget(BaseWidget) :
                              7: "right_joy", 6: "left_joy"}
 
         self.left_joystick_y = 0
+
+        self.started = False
         
     def on_key_down(self, keycode, modifiers):
         
         if keycode[1] == 'spacebar':
             self.audio_ctrl.toggle()
             self.paused = not self.paused
-            self.toggle_ps()
+            if not self.started:
+                self.toggle_ps()
+            self.started = True
 
         if not self.paused:
             if keycode[1] in 'qwertyuiop':

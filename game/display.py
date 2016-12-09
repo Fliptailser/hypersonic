@@ -77,11 +77,16 @@ class Spaceship(InstructionGroup):
         Updates the appearance of the particle system based on health
         """
         percent = min(health/100., 1)
-        self.ps_top.max_num_particles = self.ps_bottom.max_num_particles = percent*130+20
-
+        self.max_particles = int(percent*180+20)
         
     def on_update(self, dt):
-        pass
+        if self.ps_top.max_num_particles < self.max_particles:
+            self.ps_top.max_num_particles += 1
+            self.ps_bottom.max_num_particles += 1
+        elif self.ps_top.max_num_particles > self.max_particles:
+            self.ps_top.max_num_particles -= 1
+            self.ps_bottom.max_num_particles -= 1
+
 
 class HealthBar(InstructionGroup):
     """
@@ -692,6 +697,8 @@ class GameDisplay(InstructionGroup):
             signal.hit()
     
     def on_update(self, dt):
+        self.ship.on_update(dt)
+
         if self.bump.y < self.bump_target:
             self.bump.y += self.bump_target / 2.
         else:
