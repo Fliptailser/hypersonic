@@ -18,7 +18,7 @@ from player import *
 
 from kivy.clock import Clock as kivyClock
 
-SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' ]
+SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DanimalCannon_Axis']
 
 
 class MainWidget(BaseWidget) :
@@ -59,7 +59,12 @@ class MainWidget(BaseWidget) :
 
         self.player = Player(midi_lists, self.game_display, self.audio_ctrl)
         
-        self.paused = True       
+        self.paused = True
+
+        self.start_label = Label(text="Press Start to Go!", font_size=100, x=700, y=300, halign='left')
+        self.add_widget(self.start_label)
+        if not self.controller_found:
+            self.start_label.text = "Press the\nspacebar\nto Go!"
 
         self.xbox_buttons = {0: "dpad_up", 1: "dpad_down", 2: "dpad_left", 3: "dpad_right",
                              4: "start", 5: "back", 8: "LB", 9: "RB",
@@ -70,7 +75,7 @@ class MainWidget(BaseWidget) :
 
         self.started = False
         
-    def on_key_down(self, keycode, modifiers):
+    def key_down(self, keycode, modifiers):
         
         if keycode[1] == 'spacebar':
             self.audio_ctrl.toggle()
@@ -89,7 +94,7 @@ class MainWidget(BaseWidget) :
             if keycode[1] in 'zxcvbnm':
                 self.player.fire('bot', keycode[1])
         
-    def on_key_up(self, keycode):
+    def key_up(self, keycode):
         if not self.paused:
             if keycode[1] in 'qwertyyuiop':
                 self.player.release('top', keycode[1])
@@ -100,15 +105,15 @@ class MainWidget(BaseWidget) :
             if keycode[1] in 'zxcvbnm':
                 self.player.release('bot', keycode[1])
 
-    def on_touch_down(self, touch):
+    def touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
         # print touch.button
         pass
 
-    def on_touch_up(self, touch):
+    def touch_up(self, touch):
         pass
 
-    def on_joy_button_down(self, buttonid):
+    def joy_button_down(self, buttonid):
         """
         XBOX controller buttons down
         """
@@ -133,6 +138,7 @@ class MainWidget(BaseWidget) :
             self.paused = not self.paused
             if not self.started:
                 self.toggle_ps()
+                self.remove_widget(self.start_label)
             self.started = True
 
         if not self.paused:
@@ -146,7 +152,7 @@ class MainWidget(BaseWidget) :
                 self.player.fire('bot', button)
 
 
-    def on_joy_button_up(self, buttonid):
+    def joy_button_up(self, buttonid):
         """
         XBOX controller buttons up
         """
@@ -166,7 +172,7 @@ class MainWidget(BaseWidget) :
             if button == 'A':
                 self.player.release('bot', button)
 
-    def on_joy_axis(self, axis_id, value):
+    def joy_axis(self, axis_id, value):
         """
         XBOX controller axes changes
         0: left joystick x
@@ -190,7 +196,7 @@ class MainWidget(BaseWidget) :
             self.ps_top.stop()
             self.ps_bottom.stop()
         
-    def on_update(self):
+    def update(self):
         self.score_label.text = str(self.player.score)
         self.streak_label.text = "Streak: " + str(self.player.streak)
         self.multiplier_label.text = "Multiplier: " + str(self.player.streak_multiplier) + "x"
@@ -231,8 +237,8 @@ class MenuWidget(BaseWidget) :
         self.previews = []
 
         for i, level in enumerate(self.levels):
-            label = Label(text="", font_size='30sp')
-            preview = display.LevelPreview(x, y-i*120, level, label)
+            label = Label(text="", font_size='30sp', halign='left')
+            preview = display.LevelPreview(x, y-i*165, level, label)
             self.display_objects.add(preview)
             self.previews.append(preview)
             labels.append(label)
@@ -249,7 +255,7 @@ class MenuWidget(BaseWidget) :
                              11: "A", 12: "B", 13: "X", 14: "Y",
                              7: "right_joy", 6: "left_joy"}
 
-    def on_joy_axis(self, axis_id, value):
+    def joy_axis(self, axis_id, value):
         """
         XBOX controller axes changes
         0: left joystick x
@@ -260,9 +266,9 @@ class MenuWidget(BaseWidget) :
         5: right trigger
         """
         # print "axis", axis_id, value
-        if axis_id == 1 and abs(value) > 0.5 and self.delay >= 15:
+        if axis_id == 1 and abs(value) > 0.75 and self.delay >= 15:
             # negative value positive percent is down
-            if value < 0:
+            if value > 0:
                 self.select_up()
             else:
                 self.select_down()
@@ -286,7 +292,6 @@ class MenuWidget(BaseWidget) :
 
         try:
             self.previews[self.selected].unhighlight()
-            print "unhighlighted", self.selected
         except:
             pass 
 
@@ -297,12 +302,12 @@ class MenuWidget(BaseWidget) :
         if self.selected != -1:
             self.previews[self.selected].highlight()
 
-    def on_touch_down(self, touch):
+    def touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
         # print touch.button
         self.start_level() # handles if logic to see if startable
 
-    def on_joy_button_down(self, buttonid):
+    def joy_button_down(self, buttonid):
         """
         XBOX controller buttons down
         """
@@ -320,30 +325,29 @@ class MenuWidget(BaseWidget) :
         """
         Starts the selected level
         """
-        if 0 <= self.selected < len(self.levels) and not self.disabled:
+        if 0 <= self.selected < len(self.levels):
             new_level = MainWidget(self.levels[self.selected])
             # self.disabled = True
             self.callback(new_level)
 
-    def on_update(self):
-        if not self.disabled:
-            (x,y) = Window.mouse_pos
+    def update(self):
+        (x,y) = Window.mouse_pos
 
-            found_selection = False
+        found_selection = False
 
-            if not self.controller_found:
-                for i, preview in enumerate(self.previews):
-                    is_highlighted = preview.is_highlighted(x, y)
-                    if is_highlighted:
-                        self.selected = i
-                        found_selection = True
+        if not self.controller_found:
+            for i, preview in enumerate(self.previews):
+                is_highlighted = preview.is_highlighted(x, y)
+                if is_highlighted:
+                    self.selected = i
+                    found_selection = True
 
-                if not found_selection:
-                    self.selected = -1
+            if not found_selection:
+                self.selected = -1
 
-            self.delay += 1
-            if self.delay > 100:
-                self.delay = 15 # keep small number so doesn't take up too much memory
+        self.delay += 1
+        if self.delay > 100:
+            self.delay = 15 # keep small number so doesn't take up too much memory
 
 
 class FatherWidget(BaseWidget):
@@ -354,13 +358,66 @@ class FatherWidget(BaseWidget):
         super(FatherWidget, self).__init__()
         self.menu = MenuWidget(self.start_new_level)
         self.add_widget(self.menu)
-        self.current_level = None
+        self.current_widget = self.menu
+
+    # make it so only ONE widget can accept input. disabling them didn't work for whatever reason
+    def on_key_down(self, keycode, modifiers):
+        try:
+            self.current_widget.key_down(keycode, modifiers)
+        except:
+            pass
+
+    def on_key_up(self, keycode):
+        try:
+            self.current_widget.key_up(keycode)
+        except:
+            pass
+
+    def on_touch_down(self, touch):
+        try:
+            self.current_widget.touch_down(touch)
+        except:
+            pass
+
+    def on_touch_up(self, touch):
+        try:
+            self.current_widget.touch_up(touch)
+        except:
+            pass
+
+    def on_joy_button_down(self, buttonid):
+        try:
+            self.current_widget.joy_button_down(buttonid)
+        except:
+            pass
+
+    def on_joy_button_up(self, buttonid):
+        try:
+            self.current_widget.joy_button_up(buttonid)
+        except:
+            pass
+
+    def on_joy_axis(self, axis_id, value):
+        try:
+            self.current_widget.joy_axis(axis_id, value)
+        except:
+            pass
+
+    def on_update(self):
+        try:
+            self.current_widget.update()
+        except:
+            pass
 
     def start_new_level(self, widget):
-        self.remove_widget(self.menu)
-        self.menu.disabled = True
-        self.current_level = widget
-        self.add_widget(self.current_level)
+        self.remove_widget(self.current_widget)
+        self.current_widget = widget
+        self.add_widget(self.current_widget)
+
+    def return_to_menu(self, widget):
+        self.remove_widget(self.current_widget)
+        self.current_widget = self.menu
+        self.add_widget(self.current_widget)
 
 
 Window.size = (1280, 720)

@@ -740,13 +740,25 @@ class LevelPreview(InstructionGroup):
         self.rect = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.rect)
         src = '../assets/%s.jpg' % level_name
+
+        # check if jpg or png
+        try:
+            # try open as jpg, if not jpg, must be png
+            with open(src) as f:
+                pass
+        except:
+            # if not png, then give up
+            src = src[:-4] + '.png'
+
+
         self.add(Color(rgb=(1,1,1)))
         self.img = Rectangle(pos=(self.x+10, self.y+10), size=(120, 120), source=src)
         self.add(self.img)
 
         self.label = label
+        self.label.text_size = (self.width - 250, self.height - 70)
         self.label.text = level_name
-        self.label.x = self.x + 250
+        self.label.x = self.x + 330
         self.label.y = self.y + 70
 
     def is_highlighted(self, x, y):
