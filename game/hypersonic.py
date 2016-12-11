@@ -18,14 +18,15 @@ from player import *
 
 from kivy.clock import Clock as kivyClock
 
-PROTOTYPE_SONG = 'DanimalCannon_Axis'
+SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' ]
+
 
 class MainWidget(BaseWidget) :
     def __init__(self, song_name):
         super(MainWidget, self).__init__()
         
         print('Loading MIDI...')
-        midi_lists = parse.parse_MIDI_chart(PROTOTYPE_SONG)
+        midi_lists = parse.parse_MIDI_chart(song_name)
         #print midi_lists
         
         # midi_lists['beats']: list of (beat_number, tick,  beat_length)
@@ -221,7 +222,7 @@ class MenuWidget(BaseWidget) :
         self.delay = 10
         self.callback = callback
 
-        self.levels = [PROTOTYPE_SONG]
+        self.levels = SONG_NAMES
         self.display_objects = AnimGroup()
         x = 340
         y = 350

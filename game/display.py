@@ -11,9 +11,8 @@ SPACESHIP_SRC = 'ship_blank.png'
 NOW_X = 300
 WINDOW_SIZE = (1280, 720)
 
-# TODO: better scroll speed / fix jittery-looking scrolling
-# It has to do with how scrolling is synced to the song frame. It's 100% synced but it gets jittery at high scroll speeds
-PIXELS_PER_TICK = 0.25
+# 0.25
+PIXELS_PER_TICK = 0.3
 
 class Spaceship(InstructionGroup):
     """
@@ -546,7 +545,7 @@ class Bump(object):
         
     def hit(self):
         self.is_hit = True
-        self.callback(self.v)
+        self.callback(self.v / 2.0)
     
 
 class GameDisplay(InstructionGroup):
