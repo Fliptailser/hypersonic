@@ -723,4 +723,49 @@ class GameDisplay(InstructionGroup):
         self.scroll.x = - self.tempo_map.time_to_tick(time) * PIXELS_PER_TICK
      
 
+class LevelPreview(InstructionGroup):
+
+    def __init__(self, x, y, level_name, label):
+        super(LevelPreview, self).__init__()
+
+        self.x = x
+        self.y = y
+        self.level_name = level_name
+
+        self.width = 700
+        self.height = 150
+
+        self.color = Color(rgb=(0.3, 0.3, 0.3))
+        self.add(self.color)
+        # instruction groups
+        self.rect = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
+        self.add(self.rect)
+        src = '../assets/%s.jpg' % level_name
+        self.add(Color(rgb=(1,1,1)))
+        self.img = Rectangle(pos=(self.x+10, self.y+10), size=(120, 120), source=src)
+        self.add(self.img)
+
+        self.label = label
+        self.label.text = level_name
+        self.label.x = self.x + 250
+        self.label.y = self.y + 70
+
+    def is_highlighted(self, x, y):
+        highlighted = (self.x <= x <= self.x+self.width) and (self.y <= y <= self.y+self.height)
+
+        if highlighted:
+            self.highlight()
+            return True
+        else:
+            self.unhighlight()
+            return False
+
+    def highlight(self):
+        self.color.rgb = (0.3, 0.3, 0.6)
+
+    def unhighlight(self):
+        self.color.rgb = (0.3, 0.3, 0.3)
+
+
+
 

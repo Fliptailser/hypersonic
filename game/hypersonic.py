@@ -21,7 +21,7 @@ from kivy.clock import Clock as kivyClock
 PROTOTYPE_SONG = 'DanimalCannon_Axis'
 
 class MainWidget(BaseWidget) :
-    def __init__(self):
+    def __init__(self, song_name):
         super(MainWidget, self).__init__()
         
         print('Loading MIDI...')
@@ -47,7 +47,7 @@ class MainWidget(BaseWidget) :
         self.add_widget(self.ps_top)
         self.add_widget(self.ps_bottom)
 
-        song_path = '../assets/' + PROTOTYPE_SONG + '.wav'
+        song_path = '../assets/' + song_name + '.wav'
         self.audio_ctrl = AudioController(song_path, midi_lists['tempo'])
 
         self.tempo_map = TempoMap(data=midi_lists['tempo'])
@@ -118,7 +118,6 @@ class MainWidget(BaseWidget) :
             # ERROR: button can't be found
             return
         """
-        clicked joystick TODO
 
         bass powerup
 
@@ -131,7 +130,9 @@ class MainWidget(BaseWidget) :
         if button == 'start':
             self.audio_ctrl.toggle()
             self.paused = not self.paused
-            self.toggle_ps()
+            if not self.started:
+                self.toggle_ps()
+            self.started = True
 
         if not self.paused:
             if button == 'Y':
@@ -209,7 +210,158 @@ class MainWidget(BaseWidget) :
                 self.player.update_position(Window.mouse_pos)
                 
             self.player.on_update()
-            
+
+
+class MenuWidget(BaseWidget) :
+    def __init__(self, callback):
+        super(MenuWidget, self).__init__()
+        self.main_label = Label(text = "Hypersonic", halign='right', font_size=100, x = Window.width/2, y = 550)
+        self.add_widget(self.main_label)
+
+        self.delay = 10
+        self.callback = callback
+
+        self.levels = [PROTOTYPE_SONG]
+        self.display_objects = AnimGroup()
+        x = 340
+        y = 350
+        labels = []
+
+        self.previews = []
+
+        for i, level in enumerate(self.levels):
+            label = Label(text="", font_size='30sp')
+            preview = display.LevelPreview(x, y-i*120, level, label)
+            self.display_objects.add(preview)
+            self.previews.append(preview)
+            labels.append(label)
+
+        self.canvas.add(self.display_objects)
+
+        self.selected = -1
+
+        for label in labels:
+            self.add_widget(label)
+
+        self.xbox_buttons = {0: "dpad_up", 1: "dpad_down", 2: "dpad_left", 3: "dpad_right",
+                             4: "start", 5: "back", 8: "LB", 9: "RB",
+                             11: "A", 12: "B", 13: "X", 14: "Y",
+                             7: "right_joy", 6: "left_joy"}
+
+    def on_joy_axis(self, axis_id, value):
+        """
+        XBOX controller axes changes
+        0: left joystick x
+        1: left joystick y
+        2: right joystick x
+        3: right joystick y
+        4: left trigger
+        5: right trigger
+        """
+        # print "axis", axis_id, value
+        if axis_id == 1 and abs(value) > 0.5 and self.delay >= 15:
+            # negative value positive percent is down
+            if value < 0:
+                self.select_up()
+            else:
+                self.select_down()
+            # delay so has to press more than once to make it move a lot
+            self.delay = 0
+
+    def select_up(self):
+        try:
+            self.previews[self.selected].unhighlight()
+        except:
+            pass        
+
+        self.selected += 1
+        if self.selected == len(self.levels):
+            self.selected = -1
+
+        if self.selected != -1:
+            self.previews[self.selected].highlight()
+
+    def select_down(self):
+
+        try:
+            self.previews[self.selected].unhighlight()
+            print "unhighlighted", self.selected
+        except:
+            pass 
+
+        self.selected -= 1
+        if self.selected == -2:
+            self.selected = len(self.levels)-1
+
+        if self.selected != -1:
+            self.previews[self.selected].highlight()
+
+    def on_touch_down(self, touch):
+        # TODO figure out how to update mouse config so doesn't make the circles on right clicks
+        # print touch.button
+        self.start_level() # handles if logic to see if startable
+
+    def on_joy_button_down(self, buttonid):
+        """
+        XBOX controller buttons down
+        """
+        # print "down", buttonid
+        try:
+            button = self.xbox_buttons[buttonid]
+        except:
+            # ERROR: button can't be found
+            return
+
+        if button in ['A', 'start']:
+            self.start_level()  # handles if logic to see if startable
+
+    def start_level(self):
+        """
+        Starts the selected level
+        """
+        if 0 <= self.selected < len(self.levels) and not self.disabled:
+            new_level = MainWidget(self.levels[self.selected])
+            # self.disabled = True
+            self.callback(new_level)
+
+    def on_update(self):
+        if not self.disabled:
+            (x,y) = Window.mouse_pos
+
+            found_selection = False
+
+            if not self.controller_found:
+                for i, preview in enumerate(self.previews):
+                    is_highlighted = preview.is_highlighted(x, y)
+                    if is_highlighted:
+                        self.selected = i
+                        found_selection = True
+
+                if not found_selection:
+                    self.selected = -1
+
+            self.delay += 1
+            if self.delay > 100:
+                self.delay = 15 # keep small number so doesn't take up too much memory
+
+
+class FatherWidget(BaseWidget):
+    """
+    Handles moving between main widgets that are displayed
+    """
+    def __init__(self):
+        super(FatherWidget, self).__init__()
+        self.menu = MenuWidget(self.start_new_level)
+        self.add_widget(self.menu)
+        self.current_level = None
+
+    def start_new_level(self, widget):
+        self.remove_widget(self.menu)
+        self.menu.disabled = True
+        self.current_level = widget
+        self.add_widget(self.current_level)
+
+
 Window.size = (1280, 720)
 
-run(MainWidget)
+run(FatherWidget)
