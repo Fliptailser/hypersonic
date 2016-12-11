@@ -184,8 +184,11 @@ class Beam(InstructionGroup):
         # self.add(Color(rgb=[1, 0.5, 0.5], a=0.3))
         # self.red_line = Line(points=[ship_x, ship_y, RET_X, self.reticle_y], width=3)
         # self.add(self.red_line)
+        width = 1
+        if hit:
+            width = 3
         
-        self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=3)
+        self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=width)
         self.add(self.blue_line)
         self.t = 0
 
@@ -660,7 +663,7 @@ class GameDisplay(InstructionGroup):
         lane: {'top', 'mid', 'bot'} lane of beam
         hit: True if hit something
         """
-        offset = 15
+        offset = 5
         beam = Beam(self.ship.x+SPACESHIP_WIDTH/2-offset, self.ship.y, lane=lane, hit=hit)
         self.add(beam)
         self.beams.append(beam)
@@ -740,13 +743,25 @@ class LevelPreview(InstructionGroup):
         self.rect = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.rect)
         src = '../assets/%s.jpg' % level_name
+
+        # check if jpg or png
+        try:
+            # try open as jpg, if not jpg, must be png
+            with open(src) as f:
+                pass
+        except:
+            # if not png, then give up
+            src = src[:-4] + '.png'
+
+
         self.add(Color(rgb=(1,1,1)))
         self.img = Rectangle(pos=(self.x+10, self.y+10), size=(120, 120), source=src)
         self.add(self.img)
 
         self.label = label
+        self.label.text_size = (self.width - 250, self.height - 70)
         self.label.text = level_name
-        self.label.x = self.x + 250
+        self.label.x = self.x + 330
         self.label.y = self.y + 70
 
     def is_highlighted(self, x, y):
@@ -764,6 +779,32 @@ class LevelPreview(InstructionGroup):
 
     def unhighlight(self):
         self.color.rgb = (0.3, 0.3, 0.3)
+
+
+class LevelMenu(InstructionGroup):
+
+    def __init__(self, labels):
+        super(LevelMenu, self).__init__()  
+        self.labels = labels
+        # TODO make outer rectangle
+
+    # TODO other methods?
+
+
+class PauseMenu(LevelMenu):
+
+    def __init__(self, labels):
+        super(PauseMenu, self).__init__()  
+
+    # TODO other methods
+
+
+class LevelEndMenu(LevelMenu):
+
+    def __init__(self, labels):
+        super(LevelEndMenu, self).__init__()  
+
+    # TODO other methods
 
 
 
