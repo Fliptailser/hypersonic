@@ -597,13 +597,13 @@ class GameDisplay(InstructionGroup):
         # Add scrolling visuals
         for beat in song_data['beats']:
             self.add_beat_line(beat)
-            
+        
         for trace in song_data['traces']:
             self.add_trace(trace)
           
         for passive in song_data['passive_targets']:
             self.add_passive_target(passive)
-            
+        
         for target in song_data['targets']:
             self.add_target(target)
             
@@ -794,20 +794,17 @@ class LevelMenu(InstructionGroup):
             label.text_size = (400, 50)
             label.x = 580
             label.y = 460-i*70
-            print label.color
         
         self.outer_rect_color = Color(rgb=(0.3, 0.3, 0.3))
         self.outer_rect = Rectangle(pos=(380, 160), size=(600, 400))
         
 
     def move_selection_down(self):
-        # TODO select down
-        self.labels[self.selected_label].color = (1,1,1, 1)
+        self.labels[self.selected_label].color = (1,1,1,1)
         self.selected_label = (self.selected_label+1) % len(self.labels)
         self.labels[self.selected_label].color = self.selected_color
 
     def move_selection_up(self):
-        # TODO select up
         self.labels[self.selected_label].color = (1,1,1,1)
         self.selected_label = (self.selected_label+1) % len(self.labels)
         self.labels[self.selected_label].color = self.selected_color
@@ -838,8 +835,6 @@ class LevelMenu(InstructionGroup):
     def on_update(self, dt):
         pass
 
-    # TODO other methods?
-
 
 class PauseMenu(LevelMenu):
 
@@ -847,25 +842,35 @@ class PauseMenu(LevelMenu):
         # labels needs to be 3 labels
         super(PauseMenu, self).__init__(labels)
         
-
-    # TODO other methods
     def appear(self):
         super(PauseMenu, self).appear()
         self.labels[0].text = "Resume"
         self.labels[1].text = "Restart"
         self.labels[2].text = "Quit"
 
+
 class LevelEndMenu(LevelMenu):
 
-    def __init__(self, labels):
-        super(LevelEndMenu, self).__init__(labels)  
+    def __init__(self, labels, score_label, player):
+        # labels needs to be 2 labels
+        super(LevelEndMenu, self).__init__(labels)
+        self.score_label = score_label
+        self.player = player
 
-    # TODO other methods
+        self.score_label.x = 780
+        self.score_label.y = 350
+        self.score_label.text_size = (400, 400)
+
     def appear(self):
+        success = self.player.health > 0
         super(LevelEndMenu, self).appear()
-        self.labels[0].text = "Retry"
+        self.labels[0].text = "Retry" if not success else "Fly again!"
         self.labels[1].text = "Quit"
 
+        stats = self.player.get_stats()
+
+        self.score_label.text = ("Score: %d\n\nMax Hit Streak: %d\n\n" +
+                "Hit Accuracy: %d%%\n\nTrace Accuracy: %d%%\n\n") % (stats['score'], stats['hit'], stats['streak'], stats['trace'])
 
 
 

@@ -59,17 +59,21 @@ class MainWidget(BaseWidget) :
         self.display_objects = AnimGroup()
         self.game_display = display.GameDisplay(midi_lists, self.ps_top, self.ps_bottom)
         self.display_objects.add(self.game_display)
+        self.player = Player(midi_lists, self.game_display, self.audio_ctrl)
 
-        # TODO create labels for pause menu
+        # pause menu
         self.pause_labels = [Label(text="", font_size=30, halign='left') for i in xrange(3)]
-
         self.pause_menu = display.PauseMenu(self.pause_labels)
         self.display_objects.add(self.pause_menu)
 
+        # level end menu
+        self.end_labels = [Label(text="", font_size=30, halign='left') for i in xrange(2)]
+        score_label2 = Label(text="", font_size=30, halign='left')
+        self.level_end_menu = display.LevelEndMenu(self.end_labels, score_label2, self.player)
+        self.display_objects.add(self.level_end_menu)
+
         self.canvas.add(self.display_objects)
 
-        self.player = Player(midi_lists, self.game_display, self.audio_ctrl)
-        
         self.paused = True
 
         self.start_label = Label(text="Press Start to Go!", font_size=100, x=700, y=300, halign='left')
@@ -85,9 +89,14 @@ class MainWidget(BaseWidget) :
         self.left_joystick_y = 0
 
         self.started = False
+        self.ended = False
+        self.toggle_ps()
 
         # add labels last so that they can appear on windows
+        self.add_widget(score_label2)
         map(self.add_widget, self.pause_labels)
+        map(self.add_widget, self.end_labels)
+        
         
     def key_down(self, keycode, modifiers):
         
@@ -95,7 +104,6 @@ class MainWidget(BaseWidget) :
             self.audio_ctrl.toggle()
             self.paused = not self.paused
             if not self.started:
-                self.toggle_ps()
                 self.remove_widget(self.start_label)
             self.started = True
 
@@ -157,7 +165,6 @@ class MainWidget(BaseWidget) :
             self.audio_ctrl.toggle()
             self.paused = not self.paused
             if not self.started:
-                self.toggle_ps()
                 self.remove_widget(self.start_label)
             self.started = True
 
@@ -176,7 +183,24 @@ class MainWidget(BaseWidget) :
             if button == 'A':
                 self.player.fire('bot', button)
 
-        if self.paused:
+        # level end menu
+        if self.paused and self.ended:
+            if button == 'dpad_down':
+                self.level_end_menu.move_selection_down()
+
+            if button == 'dpad_up':
+                self.level_end_menu.move_selection_up()
+
+            if button == 'A':
+                action = self.level_end_menu.get_selected_name()
+
+                if action in ['Retry', "Fly again!"]:
+                    self.level_callback(self.song_name)
+                elif action == 'Quit':
+                    self.menu_callback()
+
+        # pause menu
+        elif self.paused:
             if button == 'dpad_down':
                 self.pause_menu.move_selection_down()
 
@@ -260,6 +284,12 @@ class MainWidget(BaseWidget) :
                 self.player.update_position(Window.mouse_pos)
                 
             self.player.on_update()
+
+        if not self.ended and self.player.health == 0:
+            # player died
+            self.level_end_menu.appear()
+            self.paused = True
+            self.ended = True
 
 
 class MenuWidget(BaseWidget) :
