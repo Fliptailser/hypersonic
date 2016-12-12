@@ -18,7 +18,7 @@ from player import *
 
 from kivy.clock import Clock as kivyClock
 
-SONG_NAMES = ['PROTODOME_ThisIsBLUESHIFT' , 'DanimalCannon_Axis']
+SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DaftPunk_HBFS']
 
 
 class MainWidget(BaseWidget) :
