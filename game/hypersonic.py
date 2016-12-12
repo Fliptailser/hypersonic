@@ -297,7 +297,7 @@ class MainWidget(BaseWidget) :
                 self.player.update_position(Window.mouse_pos)
                 
             self.player.on_update()
-        elif not self.ended and self.started:
+        elif not self.ended and self.started and not self.controller_found:
             self.pause_menu.select(Window.mouse_pos)
 
         if self.game_display.reach_end(self.audio_ctrl.get_time()) and not self.ended:
@@ -316,6 +316,9 @@ class MainWidget(BaseWidget) :
             self.ps_top.stop()
             self.ps_bottom.stop()
             self.explosion_on = True
+
+        if self.ended and not self.controller_found:
+            self.level_end_menu.select(Window.mouse_pos)
 
 
 class MenuWidget(BaseWidget) :

@@ -82,7 +82,7 @@ class Spaceship(InstructionGroup):
         percent = min(health/100., 1)
         self.max_particles = int(percent*180+20)
 
-        exp_percent = min(health, 75)/75.
+        exp_percent = min(health, 50)/50.
 
         self.exploding_particles = int((1-exp_percent)*230)+29
 
