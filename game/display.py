@@ -295,16 +295,25 @@ class Tap(Target):
         super(Tap, self).__init__(lane, tick)
 
         self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
-        self.add(self.color)
+        
         self.width = 20
         self.height = 50
         self.x -= self.width/2
         self.y -= self.height/2
+        
+        self.flare_color = Color(rgb=[0.2, 0.2, 0.6])
+        self.flare_color.a = 0
+        self.hit_flare = Rectangle(pos=(self.x, self.y + self.height/2 - 80), size=(2000, 160))
+        self.add(self.flare_color)
+        self.add(self.hit_flare)
+        
+        self.add(self.color)
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
 
     def hit(self):
         self.color.a = 0
+        self.flare_color.a = 1
         self.is_hit = True
         return (100, False)
         
@@ -314,7 +323,8 @@ class Tap(Target):
         
     
     def on_update(self, dt):
-        pass
+        if self.flare_color.a > 0:
+            self.flare_color.a = max(0, self.flare_color.a - 0.05)
 
 
 class HoldStart(Target):
@@ -322,15 +332,24 @@ class HoldStart(Target):
         super(HoldStart, self).__init__(lane, tick)
 
         self.color = Color(rgb=[0.5, 0.5, 1], a=0.8)
-        self.add(self.color)
+        
         self.width = 80 * PIXELS_PER_TICK
         self.height = 50
         self.y -= self.height/2
+        
+        self.flare_color = Color(rgb=[0.2, 0.2, 0.6])
+        self.flare_color.a = 0
+        self.hit_flare = Rectangle(pos=(self.x, self.y + self.height/2 - 80), size=(2000, 160))
+        self.add(self.flare_color)
+        self.add(self.hit_flare)
+        
+        self.add(self.color)
         self.shape = Rectangle(pos=(self.x, self.y), size=(self.width, self.height))
         self.add(self.shape)
 
     def hit(self):
         self.color.a = 0
+        self.flare_color.a = 1
         self.is_hit = True
         return (100, True)
         
@@ -340,7 +359,8 @@ class HoldStart(Target):
         
         
     def on_update(self, dt):
-        pass
+        if self.flare_color.a > 0:
+            self.flare_color.a = max(0, self.flare_color.a - 0.05)
         
 class Hold(Target):
     """
@@ -485,11 +505,18 @@ class Gate(InstructionGroup):
         self.y = 360 - 240 + 480 * (pos)
         self.is_hit = False
 
-        self.color = Color(rgb=[1.0, 1.0, 1.0], a=0.9)
-        self.add(self.color)
+        self.color = Color(rgb=[0.9, 0.9, 1.0], a=0.9)
+        
         self.width = 40 * PIXELS_PER_TICK
         self.height = 20
         
+        self.flare_color = Color(rgb=[0.5, 0.5, 0.6])
+        self.flare_color.a = 0
+        self.hit_flare = Rectangle(pos=(self.x, self.y - 20), size=(2000, 40))
+        self.add(self.flare_color)
+        self.add(self.hit_flare)
+        
+        self.add(self.color)
         self.shape = Rectangle(pos=(-20, -20), size=(40, 40))
         
         self.add(PushMatrix())
@@ -503,6 +530,7 @@ class Gate(InstructionGroup):
 
     def hit(self):
         self.color.a = 0
+        self.flare_color.a = 1
         self.is_hit = True
         return 100
         
@@ -512,7 +540,8 @@ class Gate(InstructionGroup):
         
         
     def on_update(self, dt):
-        pass
+        if self.flare_color.a > 0:
+            self.flare_color.a = max(0, self.flare_color.a - 0.05)
         
 class Trail(InstructionGroup):
 
@@ -529,7 +558,7 @@ class Trail(InstructionGroup):
         self.width = 40 * PIXELS_PER_TICK
         self.height = 20
         
-        self.shape = Rectangle(pos=(-15, -15), size=(30, 30))
+        self.shape = Rectangle(pos=(-10, -10), size=(20, 20))
         
         self.add(PushMatrix())
         self.add(Translate(self.x, self.y))
@@ -739,6 +768,15 @@ class GameDisplay(InstructionGroup):
     def on_update(self, dt):
         self.ship.on_update(dt)
 
+        for obj in self.targets:
+            obj.on_update(dt)
+            
+        for obj in self.traces:
+            obj.on_update(dt)
+            
+        #for obj in self.targets:
+        #    obj.on_update(dt)
+        
         if self.bump.y < self.bump_target:
             self.bump.y += self.bump_target / 2.
         else:
