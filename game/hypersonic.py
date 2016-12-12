@@ -521,10 +521,6 @@ class FatherWidget(BaseWidget):
 
     def start_new_level(self, song_name):
         self.remove_widget(self.current_widget)
-        try:
-            current_widget.audioctrl.audio.close()
-        except:
-            pass
         self.current_widget = MainWidget(song_name, self.start_new_level, self.return_to_menu)
         self.add_widget(self.current_widget)
 
