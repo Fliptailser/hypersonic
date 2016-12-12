@@ -19,7 +19,7 @@ class Spaceship(InstructionGroup):
     The spaceship that the user controls.
     """
 
-    def __init__(self, x, y, ps_top, ps_bottom, parent_disp):
+    def __init__(self, x, y, ps_top, ps_bottom, parent_disp, explosion):
         super(Spaceship, self).__init__()
         self.x = x
         self.y = y
@@ -38,8 +38,10 @@ class Spaceship(InstructionGroup):
         # particle system stuffs
         self.ps_top = ps_top
         self.ps_bottom = ps_bottom
+        self.explosion = explosion
         self.set_ps_pos()
         self.update_ps_from_health(50)
+        self.exp_not_stopped = True
 
     def move_vertical(self, pos=None, step=0):
         """
@@ -70,6 +72,8 @@ class Spaceship(InstructionGroup):
         self.ps_top.emitter_y = self.y+SPACESHIP_HEIGHT/4  + self.parent_disp.y
         self.ps_bottom.emitter_x = self.x-20 
         self.ps_bottom.emitter_y = self.y-SPACESHIP_HEIGHT/4  + self.parent_disp.y
+        self.explosion.emitter_x = self.x
+        self.explosion.emitter_y = self.y
 
     def update_ps_from_health(self, health):
         """
@@ -77,7 +81,11 @@ class Spaceship(InstructionGroup):
         """
         percent = min(health/100., 1)
         self.max_particles = int(percent*180+20)
-        
+
+        exp_percent = min(health, 75)/75.
+
+        self.exploding_particles = int((1-exp_percent)*230)+29
+
     def on_update(self, dt):
         if self.ps_top.max_num_particles < self.max_particles:
             self.ps_top.max_num_particles += 1
@@ -86,6 +94,18 @@ class Spaceship(InstructionGroup):
             self.ps_top.max_num_particles -= 1
             self.ps_bottom.max_num_particles -= 1
 
+        if self.exp_not_stopped:
+            if self.explosion.max_num_particles < self.exploding_particles:
+                self.explosion.max_num_particles += 5
+            elif self.explosion.max_num_particles > self.exploding_particles:
+                self.explosion.max_num_particles -= 5
+
+        if self.exploding_particles < 30 and self.exp_not_stopped:
+            self.explosion.stop()
+            self.exp_not_stopped = False
+        if self.exploding_particles > 30 and not self.exp_not_stopped:
+            self.explosion.start()
+            self.exp_not_stopped = True
 
 class HealthBar(InstructionGroup):
     """
@@ -553,7 +573,7 @@ class Bump(object):
 
 class GameDisplay(InstructionGroup):
 
-    def __init__(self, song_data, ps_top, ps_bottom):
+    def __init__(self, song_data, ps_top, ps_bottom, explosion):
         super(GameDisplay, self).__init__()
 
         self.tempo_map = TempoMap(data=song_data['tempo'])
@@ -627,7 +647,7 @@ class GameDisplay(InstructionGroup):
         self.add(PopMatrix())    
         
         # ship
-        self.ship = Spaceship(SPACESHIP_X, 360, ps_top, ps_bottom, self.bump)
+        self.ship = Spaceship(SPACESHIP_X, 360, ps_top, ps_bottom, self.bump, explosion)
         self.add(self.ship)
             
     def hit_target(self, target):
@@ -897,7 +917,7 @@ class LevelEndMenu(LevelMenu):
         stats = self.player.get_stats()
 
         self.score_label.text = ("Score: %d\n\nMax Hit Streak: %d\n\n" +
-                "Hit Accuracy: %d%%\n\nTrace Accuracy: %d%%\n\n") % (stats['score'], stats['hit'], stats['streak'], stats['trace'])
+                "Hit Accuracy: %d%%\n\nTrace Accuracy: %d%%\n\n") % (stats['score'], stats['streak'], stats['hit'], stats['trace'])
 
 
 

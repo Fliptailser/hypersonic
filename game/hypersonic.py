@@ -52,12 +52,18 @@ class MainWidget(BaseWidget) :
         self.add_widget(self.ps_top)
         self.add_widget(self.ps_bottom)
 
+        # make explosion on the ship
+        self.explosion = ParticleSystem('../explosion/particle.pex')
+        self.explosion.exploding_particles = 5
+        self.explosion.start()
+        self.explosion_on = False  # used for the ship exploding at the end
+
         song_path = '../assets/' + song_name + '.wav'
         self.audio_ctrl = AudioController(song_path, midi_lists['tempo'])
 
         self.tempo_map = TempoMap(data=midi_lists['tempo'])
         self.display_objects = AnimGroup()
-        self.game_display = display.GameDisplay(midi_lists, self.ps_top, self.ps_bottom)
+        self.game_display = display.GameDisplay(midi_lists, self.ps_top, self.ps_bottom, self.explosion)
         self.display_objects.add(self.game_display)
         self.player = Player(midi_lists, self.game_display, self.audio_ctrl)
 
@@ -91,6 +97,9 @@ class MainWidget(BaseWidget) :
         self.started = False
         self.ended = False
         self.toggle_ps()
+
+        # need explosion to be on top
+        self.add_widget(self.explosion)
 
         # add labels last so that they can appear on windows
         self.add_widget(score_label2)
@@ -302,6 +311,11 @@ class MainWidget(BaseWidget) :
             self.level_end_menu.appear()
             self.paused = True
             self.ended = True
+            self.game_display.remove(self.game_display.ship)
+            self.explosion.stop()
+            self.ps_top.stop()
+            self.ps_bottom.stop()
+            self.explosion_on = True
 
 
 class MenuWidget(BaseWidget) :
