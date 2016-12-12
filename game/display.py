@@ -23,13 +23,21 @@ class Spaceship(InstructionGroup):
         super(Spaceship, self).__init__()
         self.x = x
         self.y = y
+        self.dy = 0
         self.max_y = 559
         self.min_y = 161
         self.parent_disp = parent_disp
 
         self.add(Color(rgb=[1.0, 1.0, 1.0]))  # get rid of blue tint on spaceship
-        self.rect = Rectangle(pos=(self.x-SPACESHIP_WIDTH/2, self.y-SPACESHIP_HEIGHT/2), size=(SPACESHIP_WIDTH, SPACESHIP_HEIGHT), source=SPACESHIP_SRC)
+        
+        self.translate = Translate(self.x, self.y)
+        self.rotate = Rotate(0)
+        self.add(PushMatrix())
+        self.add(self.translate)
+        self.add(self.rotate)
+        self.rect = Rectangle(pos=(-SPACESHIP_WIDTH/2, -SPACESHIP_HEIGHT/2), size=(SPACESHIP_WIDTH, SPACESHIP_HEIGHT), source=SPACESHIP_SRC)
         self.add(self.rect)
+        self.add(PopMatrix())
         
         self.add(Color(rgb=[1.0, 1.0, 1.0]))
         self.cursor_rect = Rectangle(pos=[NOW_X - 20 - 5, self.y - 50], size=[10, 100])
@@ -47,18 +55,22 @@ class Spaceship(InstructionGroup):
         """
         Update vertical position of the spaceship so it can move up and down
         """
+        old_y = self.y
         if pos:
             self.y = pos
         if step:
             self.y += step
+        self.dy = self.y - old_y
 
         if self.y > self.max_y:
             self.y = self.max_y
         elif self.y < self.min_y:
             self.y = self.min_y
 
-        self.rect.pos = (self.x-SPACESHIP_WIDTH/2, self.y-SPACESHIP_HEIGHT/2)
+        #self.rect.pos = (-SPACESHIP_WIDTH/2, -SPACESHIP_HEIGHT/2)
         self.cursor_rect.pos = (NOW_X - 20 - 5, self.y-50)
+        self.translate.y = self.y
+        self.rotate.angle = (self.rotate.angle + 2 * self.dy) / 2.
 
         self.set_ps_pos()
         
@@ -87,6 +99,9 @@ class Spaceship(InstructionGroup):
         self.exploding_particles = int((1-exp_percent)*230)+29
 
     def on_update(self, dt):
+    
+        
+    
         if self.ps_top.max_num_particles < self.max_particles:
             self.ps_top.max_num_particles += 1
             self.ps_bottom.max_num_particles += 1
