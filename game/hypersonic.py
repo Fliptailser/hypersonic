@@ -285,6 +285,12 @@ class MainWidget(BaseWidget) :
                 
             self.player.on_update()
 
+        if self.game_display.reach_end(self.audio_ctrl.get_time()) and not self.ended:
+            # player won
+            self.level_end_menu.appear()
+            self.paused = True
+            self.ended = True
+
         if not self.ended and self.player.health == 0:
             # player died
             self.level_end_menu.appear()

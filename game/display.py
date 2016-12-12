@@ -594,6 +594,13 @@ class GameDisplay(InstructionGroup):
         # Apply scrolling screen
         self.add(PushMatrix())
         self.add(self.scroll)
+
+        last_trace = song_data['beats'][-1][2]
+        last_passive = song_data['passive_targets'][-1][2]
+        last_target = song_data['targets'][-1][2]
+
+        self.ending_tick = max(last_target, last_passive, last_trace)
+
         # Add scrolling visuals
         for beat in song_data['beats']:
             self.add_beat_line(beat)
@@ -679,7 +686,9 @@ class GameDisplay(InstructionGroup):
             if beam.lane == lane:
                 self.remove(beam)
                 self.beams.remove(beam)
-                
+    def reach_end(self, time):
+        tick = self.tempo_map.time_to_tick(time)
+        return tick >= self.ending_tick + 1000            
 
     def get_targets_in_range(self, start_tick, end_tick):
         """
