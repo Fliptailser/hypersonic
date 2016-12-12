@@ -99,9 +99,6 @@ class Spaceship(InstructionGroup):
         self.exploding_particles = int((1-exp_percent)*230)+29
 
     def on_update(self, dt):
-    
-        
-    
         if self.ps_top.max_num_particles < self.max_particles:
             self.ps_top.max_num_particles += 1
             self.ps_bottom.max_num_particles += 1
@@ -818,12 +815,17 @@ class GameDisplay(InstructionGroup):
 
 class LevelPreview(InstructionGroup):
 
-    def __init__(self, x, y, level_name, label):
+    def __init__(self, x, y, level_name, label, name_dict):
         super(LevelPreview, self).__init__()
 
         self.x = x
         self.y = y
         self.level_name = level_name
+
+        try:
+            self.read_name = name_dict[level_name]
+        except:
+            self.read_name = level_name
 
         self.width = 700
         self.height = 150
@@ -851,9 +853,9 @@ class LevelPreview(InstructionGroup):
 
         self.label = label
         self.label.text_size = (self.width - 250, self.height - 70)
-        self.label.text = level_name
+        self.label.text = self.read_name
         self.label.x = self.x + 330
-        self.label.y = self.y + 70
+        self.label.y = self.y + 50
 
     def is_highlighted(self, x, y):
         highlighted = (self.x <= x <= self.x+self.width) and (self.y <= y <= self.y+self.height)

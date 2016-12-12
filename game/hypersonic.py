@@ -20,6 +20,10 @@ from kivy.clock import Clock as kivyClock
 
 SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DaftPunk_HBFS']
 
+SONG_DICT = {'DanimalCannon_Axis': 'Danimal Cannon - Axis',
+             'PROTODOME_ThisIsBLUESHIFT': 'PROTODOME - This is BLUESHIFT',
+             'DaftPunk_HBFS': 'Daft Punk - Harder, Better, Faster, Stronger'}
+
 
 class MainWidget(BaseWidget) :
     def __init__(self, song_name, level_callback, menu_callback):
@@ -340,7 +344,7 @@ class MenuWidget(BaseWidget) :
 
         for i, level in enumerate(self.levels):
             label = Label(text="", font_size='30sp', halign='left')
-            preview = display.LevelPreview(x, y-i*165, level, label)
+            preview = display.LevelPreview(x, y-i*165, level, label, SONG_DICT)
             self.display_objects.add(preview)
             self.previews.append(preview)
             labels.append(label)
