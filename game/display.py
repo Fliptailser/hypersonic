@@ -6,8 +6,8 @@ from common.clock import *
 
 SPACESHIP_X = 100
 SPACESHIP_WIDTH = 140
-SPACESHIP_HEIGHT = 80
-SPACESHIP_SRC = 'ship_blank.png'
+SPACESHIP_HEIGHT = 110
+SPACESHIP_SRC = 'ship_blank2.png'
 NOW_X = 300
 WINDOW_SIZE = (1280, 720)
 
