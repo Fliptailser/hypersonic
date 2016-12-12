@@ -595,9 +595,18 @@ class GameDisplay(InstructionGroup):
         self.add(PushMatrix())
         self.add(self.scroll)
 
-        last_trace = song_data['beats'][-1][2]
-        last_passive = song_data['passive_targets'][-1][2]
-        last_target = song_data['targets'][-1][2]
+        try:
+            last_trace = song_data['traces'][-1][2]
+        except:
+            last_trace = 0
+        try:
+            last_passive = song_data['passive_targets'][-1][2]
+        except:
+            last_passive = 0
+        try:
+            last_target = song_data['targets'][-1][2]
+        except:
+            last_target = 0
 
         self.ending_tick = max(last_target, last_passive, last_trace)
 
