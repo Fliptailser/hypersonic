@@ -18,17 +18,21 @@ from player import *
 
 from kivy.clock import Clock as kivyClock
 
-SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DanimalCannon_Axis']
+SONG_NAMES = ['PROTODOME_ThisIsBLUESHIFT' , 'DanimalCannon_Axis']
 
 
 class MainWidget(BaseWidget) :
-    def __init__(self, song_name):
+    def __init__(self, song_name, level_callback, menu_callback):
         super(MainWidget, self).__init__()
+
+        self.song_name = song_name
+        self.level_callback = level_callback
+        self.menu_callback = menu_callback
         
         print('Loading MIDI...')
         midi_lists = parse.parse_MIDI_chart(song_name)
         #print midi_lists
-        
+
         # midi_lists['beats']: list of (beat_number, tick,  beat_length)
         # midi_lists['signals']: TODO
         # midi_lists['targets']: list of (type, lane, tick, length)
@@ -55,6 +59,13 @@ class MainWidget(BaseWidget) :
         self.display_objects = AnimGroup()
         self.game_display = display.GameDisplay(midi_lists, self.ps_top, self.ps_bottom)
         self.display_objects.add(self.game_display)
+
+        # TODO create labels for pause menu
+        self.pause_labels = [Label(text="", font_size=30, halign='left') for i in xrange(3)]
+
+        self.pause_menu = display.PauseMenu(self.pause_labels)
+        self.display_objects.add(self.pause_menu)
+
         self.canvas.add(self.display_objects)
 
         self.player = Player(midi_lists, self.game_display, self.audio_ctrl)
@@ -74,6 +85,9 @@ class MainWidget(BaseWidget) :
         self.left_joystick_y = 0
 
         self.started = False
+
+        # add labels last so that they can appear on windows
+        map(self.add_widget, self.pause_labels)
         
     def key_down(self, keycode, modifiers):
         
@@ -82,7 +96,13 @@ class MainWidget(BaseWidget) :
             self.paused = not self.paused
             if not self.started:
                 self.toggle_ps()
+                self.remove_widget(self.start_label)
             self.started = True
+
+            if self.paused:
+                self.pause_menu.appear()
+            else:
+                self.pause_menu.disappear()
 
         if not self.paused:
             if keycode[1] in 'qwertyuiop':
@@ -141,6 +161,11 @@ class MainWidget(BaseWidget) :
                 self.remove_widget(self.start_label)
             self.started = True
 
+            if self.paused:
+                self.pause_menu.appear()
+            else:
+                self.pause_menu.disappear()
+
         if not self.paused:
             if button == 'Y':
                 self.player.fire('top', button)
@@ -150,6 +175,24 @@ class MainWidget(BaseWidget) :
                 
             if button == 'A':
                 self.player.fire('bot', button)
+
+        if self.paused:
+            if button == 'dpad_down':
+                self.pause_menu.move_selection_down()
+
+            if button == 'dpad_up':
+                self.pause_menu.move_selection_up()
+
+            if button == 'A':
+                action = self.pause_menu.get_selected_name()
+                # TODO execute action
+
+                if action == 'Resume':
+                    self.joy_button_down(4)  # pretend start was pressed
+                elif action == 'Restart':
+                    self.level_callback(self.song_name)
+                elif action == 'Quit':
+                    self.menu_callback()
 
 
     def joy_button_up(self, buttonid):
@@ -268,14 +311,14 @@ class MenuWidget(BaseWidget) :
         # print "axis", axis_id, value
         if axis_id == 1 and abs(value) > 0.75 and self.delay >= 15:
             # negative value positive percent is down
-            if value > 0:
+            if value < 0:
                 self.select_up()
             else:
                 self.select_down()
             # delay so has to press more than once to make it move a lot
             self.delay = 0
 
-    def select_up(self):
+    def select_down(self):
         try:
             self.previews[self.selected].unhighlight()
         except:
@@ -288,7 +331,7 @@ class MenuWidget(BaseWidget) :
         if self.selected != -1:
             self.previews[self.selected].highlight()
 
-    def select_down(self):
+    def select_up(self):
 
         try:
             self.previews[self.selected].unhighlight()
@@ -321,14 +364,17 @@ class MenuWidget(BaseWidget) :
         if button in ['A', 'start']:
             self.start_level()  # handles if logic to see if startable
 
+        if button == 'dpad_down':
+            self.select_down()
+        elif button == 'dpad_up':
+            self.select_up()
+
     def start_level(self):
         """
         Starts the selected level
         """
         if 0 <= self.selected < len(self.levels):
-            new_level = MainWidget(self.levels[self.selected])
-            # self.disabled = True
-            self.callback(new_level)
+            self.callback(self.levels[self.selected])
 
     def update(self):
         (x,y) = Window.mouse_pos
@@ -364,57 +410,58 @@ class FatherWidget(BaseWidget):
     def on_key_down(self, keycode, modifiers):
         try:
             self.current_widget.key_down(keycode, modifiers)
-        except:
+        except AttributeError, e:
             pass
 
     def on_key_up(self, keycode):
         try:
             self.current_widget.key_up(keycode)
-        except:
+        except AttributeError, e:
             pass
 
     def on_touch_down(self, touch):
         try:
             self.current_widget.touch_down(touch)
-        except:
+        except AttributeError, e:
             pass
+
 
     def on_touch_up(self, touch):
         try:
             self.current_widget.touch_up(touch)
-        except:
+        except AttributeError, e:
             pass
 
     def on_joy_button_down(self, buttonid):
         try:
             self.current_widget.joy_button_down(buttonid)
-        except:
+        except AttributeError, e:
             pass
 
     def on_joy_button_up(self, buttonid):
         try:
             self.current_widget.joy_button_up(buttonid)
-        except:
+        except AttributeError, e:
             pass
 
     def on_joy_axis(self, axis_id, value):
         try:
             self.current_widget.joy_axis(axis_id, value)
-        except:
+        except AttributeError, e:
             pass
 
     def on_update(self):
         try:
             self.current_widget.update()
-        except:
+        except AttributeError, e:
             pass
 
-    def start_new_level(self, widget):
+    def start_new_level(self, song_name):
         self.remove_widget(self.current_widget)
-        self.current_widget = widget
+        self.current_widget = MainWidget(song_name, self.start_new_level, self.return_to_menu)
         self.add_widget(self.current_widget)
 
-    def return_to_menu(self, widget):
+    def return_to_menu(self):
         self.remove_widget(self.current_widget)
         self.current_widget = self.menu
         self.add_widget(self.current_widget)

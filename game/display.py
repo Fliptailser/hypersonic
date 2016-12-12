@@ -786,7 +786,57 @@ class LevelMenu(InstructionGroup):
     def __init__(self, labels):
         super(LevelMenu, self).__init__()  
         self.labels = labels
-        # TODO make outer rectangle
+        self.selected_label = 0
+        self.selected_color = (0,0,0.4,1)
+        self.labels[self.selected_label].color = self.selected_color
+
+        for i, label in enumerate(self.labels):
+            label.text_size = (400, 50)
+            label.x = 580
+            label.y = 460-i*70
+            print label.color
+        
+        self.outer_rect_color = Color(rgb=(0.3, 0.3, 0.3))
+        self.outer_rect = Rectangle(pos=(380, 160), size=(600, 400))
+        
+
+    def move_selection_down(self):
+        # TODO select down
+        self.labels[self.selected_label].color = (1,1,1, 1)
+        self.selected_label = (self.selected_label+1) % len(self.labels)
+        self.labels[self.selected_label].color = self.selected_color
+
+    def move_selection_up(self):
+        # TODO select up
+        self.labels[self.selected_label].color = (1,1,1,1)
+        self.selected_label = (self.selected_label+1) % len(self.labels)
+        self.labels[self.selected_label].color = self.selected_color
+
+    def select(self, mouse_pos):
+        (x, y) = mouse_pos
+        # TODO
+
+    def appear(self):
+        self.add(self.outer_rect_color)
+        self.add(self.outer_rect)
+        self.selected_label = 0
+        self.labels[self.selected_label].color = self.selected_color
+        # in children make sure that the labels actually have text
+
+    def disappear(self):
+        self.clear()
+        for label in self.labels:
+            label.text = ""
+            label.color = (1, 1, 1, 1)
+
+    def get_selected_name(self):
+        """
+        Returns empty string if not visible
+        """
+        return self.labels[self.selected_label].text
+
+    def on_update(self, dt):
+        pass
 
     # TODO other methods?
 
@@ -794,17 +844,27 @@ class LevelMenu(InstructionGroup):
 class PauseMenu(LevelMenu):
 
     def __init__(self, labels):
-        super(PauseMenu, self).__init__()  
+        # labels needs to be 3 labels
+        super(PauseMenu, self).__init__(labels)
+        
 
     # TODO other methods
-
+    def appear(self):
+        super(PauseMenu, self).appear()
+        self.labels[0].text = "Resume"
+        self.labels[1].text = "Restart"
+        self.labels[2].text = "Quit"
 
 class LevelEndMenu(LevelMenu):
 
     def __init__(self, labels):
-        super(LevelEndMenu, self).__init__()  
+        super(LevelEndMenu, self).__init__(labels)  
 
     # TODO other methods
+    def appear(self):
+        super(LevelEndMenu, self).appear()
+        self.labels[0].text = "Retry"
+        self.labels[1].text = "Quit"
 
 
 
