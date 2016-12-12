@@ -10,7 +10,7 @@ class AudioController(object):
     Creates a song and loads it with solo and bg audio tracks
     Creates snippets for audio sound fx
     """
-    def __init__(self, song_path, song_tempo):
+    def __init__(self):
         super(AudioController, self).__init__()
         self.audio = Audio(2)
         self.gain = 0.4
@@ -18,6 +18,9 @@ class AudioController(object):
 
         # create Audio components
         self.mixer = Mixer()
+        
+
+    def set_song(self, song_path, song_tempo):
         self.tempo_map = TempoMap(data=song_tempo)
         self.song = Song(tempo_map=self.tempo_map)
 
@@ -28,14 +31,17 @@ class AudioController(object):
         self.audio.set_generator(self.mixer)
 
     def get_time(self):
-        return self.song_track.get_time()
+        if self.song_track is not None:
+            return self.song_track.get_time()
 
     def get_tick(self):
-        return self.time_to_tick(self.song_track.get_time())
+        if self.tempo_map is not None:
+            return self.time_to_tick(self.song_track.get_time())
         
     # start / stop the song
     def toggle(self):
-        self.song.toggle()
+        if self.song is not None:
+            self.song.toggle()
 
     # mute / unmute the solo track
     def set_mute(self, mute):
@@ -48,10 +54,12 @@ class AudioController(object):
         pass
 
     def time_to_tick(self, time) :
-        return self.tempo_map.time_to_tick(time)
+        if self.tempo_map is not None:
+            return self.tempo_map.time_to_tick(time)
 
     def tick_to_time(self, tick) :
-        return self.tempo_map.tick_to_time(tick)
+        if self.tempo_map is not None:
+            return self.tempo_map.tick_to_time(tick)
 
     # needed to update audio
     def on_update(self):

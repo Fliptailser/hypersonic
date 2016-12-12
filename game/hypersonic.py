@@ -26,10 +26,11 @@ SONG_DICT = {'DanimalCannon_Axis': 'Danimal Cannon - Axis',
 
 
 class MainWidget(BaseWidget) :
-    def __init__(self, song_name, level_callback, menu_callback):
+    def __init__(self, song_name, audio_ctrl, level_callback, menu_callback):
         super(MainWidget, self).__init__()
 
         self.song_name = song_name
+        self.audio_ctrl = audio_ctrl
         self.level_callback = level_callback
         self.menu_callback = menu_callback
         
@@ -63,7 +64,7 @@ class MainWidget(BaseWidget) :
         self.explosion_on = False  # used for the ship exploding at the end
 
         song_path = '../assets/' + song_name + '.wav'
-        self.audio_ctrl = AudioController(song_path, midi_lists['tempo'])
+        self.audio_ctrl.set_song(song_path, midi_lists['tempo'])
 
         self.tempo_map = TempoMap(data=midi_lists['tempo'])
         self.display_objects = AnimGroup()
@@ -113,7 +114,7 @@ class MainWidget(BaseWidget) :
         
     def key_down(self, keycode, modifiers):
         
-        if keycode[1] == 'spacebar':
+        if keycode[1] == 'spacebar' and not self.ended:
             self.audio_ctrl.toggle()
             self.paused = not self.paused
             if not self.started:
@@ -122,7 +123,7 @@ class MainWidget(BaseWidget) :
 
             if self.paused:
                 self.pause_menu.appear()
-            else:
+            elif not self.ended:
                 self.pause_menu.disappear()
 
         if not self.paused:
@@ -179,7 +180,7 @@ class MainWidget(BaseWidget) :
             # ERROR: button can't be found
             return
 
-        if button == 'start':
+        if button == 'start' and not self.ended:
             self.audio_ctrl.toggle()
             self.paused = not self.paused
             if not self.started:
@@ -469,6 +470,8 @@ class FatherWidget(BaseWidget):
         self.add_widget(self.menu)
         self.current_widget = self.menu
 
+        self.audio_ctrl = AudioController()
+
     # make it so only ONE widget can accept input. disabling them didn't work for whatever reason
     def on_key_down(self, keycode, modifiers):
         try:
@@ -521,7 +524,7 @@ class FatherWidget(BaseWidget):
 
     def start_new_level(self, song_name):
         self.remove_widget(self.current_widget)
-        self.current_widget = MainWidget(song_name, self.start_new_level, self.return_to_menu)
+        self.current_widget = MainWidget(song_name, self.audio_ctrl, self.start_new_level, self.return_to_menu)
         self.add_widget(self.current_widget)
 
     def return_to_menu(self):
