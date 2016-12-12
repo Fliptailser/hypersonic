@@ -1,6 +1,6 @@
 
 from kivy.graphics.instructions import InstructionGroup
-from kivy.graphics import Color, Ellipse, Line, Rectangle
+from kivy.graphics import Color, Ellipse, Line, Rectangle, Triangle
 from kivy.graphics import PushMatrix, PopMatrix, Translate, Scale, Rotate
 from common.clock import *
 
@@ -811,7 +811,92 @@ class GameDisplay(InstructionGroup):
     def set_scroll(self, time):
         
         self.scroll.x = - self.tempo_map.time_to_tick(time) * PIXELS_PER_TICK
-     
+
+
+class PreviewDisplay(InstructionGroup):
+
+    def __init__(self, level_names, labels, name_dict):
+        super(PreviewDisplay, self).__init__()
+        self.level_names = level_names
+        self.labels = labels
+        self.name_dict = name_dict
+
+        self.pointer = 0
+        self.previews = []
+        self.x = 340
+        self.y = 350
+
+        self.left_color = Color(rgb=(1,1,1))
+        self.right_color = Color(rgb=(1,1,1))
+
+        self.left_triangle = Triangle(points=(310, 230, 265, 260, 310, 290))
+        self.right_triangle = Triangle(points=(1070, 230, 1115, 260, 1070, 290))
+
+        self.set_previews()
+        
+
+    def scroll(self, direction):
+        """
+        Changes the 3 displayed songs and returns the previews
+        """
+        if direction == 'right':
+            self.pointer += 3            
+        elif direction == 'left':
+            self.pointer -= 3
+        else:
+            return self.previews # no changes
+            
+        self.set_previews()
+        return self.previews
+
+    def get_previews(self):
+        return self.previews
+
+    def set_previews(self):
+        """
+        Actually creates the LevelPreviews
+        """
+        if self.pointer > int(len(self.level_names)/3)*3:
+            self.pointer = int(len(self.level_names)/3)*3
+            return
+        elif self.pointer < 0:
+            self.pointer = 0
+            return
+
+        self.clear()
+        self.previews = []
+        levels = self.level_names[self.pointer:self.pointer+3]
+
+        for i, level in enumerate(levels):
+            preview = LevelPreview(self.x, self.y-i*165, level, self.labels[i], self.name_dict)
+            self.add(preview)
+            self.previews.append(preview)
+
+        # some labels might be blank
+        for i in xrange(3-len(levels)):
+            self.labels[2-i].text = ""
+
+        # add little triangles on the sides to signify being able to scroll in directions
+        if self.pointer < int(len(self.level_names)/3)*3:
+            self.add(self.right_color)
+            self.add(self.right_triangle)
+        if self.pointer >= 3:
+            self.add(self.left_color)
+            self.add(self.left_triangle)
+
+    def check_triangle_highlighted(self, mouse_pos):
+        (x, y) = mouse_pos
+
+        if 265 <= x <= 310 and 230 <= y <= 290:
+            self.left_color.rgb = (0.3, 0.3, 0.6)
+            return 'left'
+        if 1070 <= x <= 1115 and 230 <= y <= 290:
+            self.right_color.rgb = (0.3, 0.3, 0.6)
+            return 'right'
+
+        self.left_color.rgb = self.right_color.rgb = (1,1,1)
+        return "none"
+
 
 class LevelPreview(InstructionGroup):
 

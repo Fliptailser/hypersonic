@@ -18,7 +18,7 @@ from player import *
 
 from kivy.clock import Clock as kivyClock
 
-SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DaftPunk_HBFS']
+SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DaftPunk_HBFS', 'DanimalCannon_Axis']
 
 SONG_DICT = {'DanimalCannon_Axis': 'Danimal Cannon - Axis',
              'PROTODOME_ThisIsBLUESHIFT': 'PROTODOME - This is BLUESHIFT',
@@ -337,18 +337,13 @@ class MenuWidget(BaseWidget) :
 
         self.levels = SONG_NAMES
         self.display_objects = AnimGroup()
-        x = 340
-        y = 350
-        labels = []
+        
+        labels = [Label(text="", font_size='30sp', halign='left') for i in xrange(3)]
 
-        self.previews = []
+        self.preview_display = display.PreviewDisplay(self.levels, labels, SONG_DICT)
+        self.display_objects.add(self.preview_display)
 
-        for i, level in enumerate(self.levels):
-            label = Label(text="", font_size='30sp', halign='left')
-            preview = display.LevelPreview(x, y-i*165, level, label, SONG_DICT)
-            self.display_objects.add(preview)
-            self.previews.append(preview)
-            labels.append(label)
+        self.previews = self.preview_display.get_previews()
 
         self.canvas.add(self.display_objects)
 
@@ -382,6 +377,17 @@ class MenuWidget(BaseWidget) :
             # delay so has to press more than once to make it move a lot
             self.delay = 0
 
+        if axis_id == 0 and abs(value) > 0.75 and self.delay >= 15:
+            # negative value positive percent is down
+            if value > 0:
+                self.previews = self.preview_display.scroll('right')
+                self.selected = -1
+            else:
+                self.previews = self.preview_display.scroll('left')
+                self.selected = -1
+            # delay so has to press more than once to make it move a lot
+            self.delay = 0 
+
     def select_down(self):
         try:
             self.previews[self.selected].unhighlight()
@@ -389,7 +395,7 @@ class MenuWidget(BaseWidget) :
             pass        
 
         self.selected += 1
-        if self.selected == len(self.levels):
+        if self.selected == len(self.previews):
             self.selected = -1
 
         if self.selected != -1:
@@ -400,7 +406,7 @@ class MenuWidget(BaseWidget) :
         try:
             self.previews[self.selected].unhighlight()
         except:
-            pass 
+            pass
 
         self.selected -= 1
         if self.selected == -2:
@@ -412,7 +418,12 @@ class MenuWidget(BaseWidget) :
     def touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
         # print touch.button
-        self.start_level() # handles if logic to see if startable
+        self.start_level() # handles if logic in function to see if startable
+
+        direction = self.preview_display.check_triangle_highlighted(touch.pos)
+        self.previews = self.preview_display.scroll(direction)
+        if direction != "none":
+            self.selected = -1
 
     def joy_button_down(self, buttonid):
         """
@@ -432,6 +443,12 @@ class MenuWidget(BaseWidget) :
             self.select_down()
         elif button == 'dpad_up':
             self.select_up()
+        elif button == 'dpad_right':
+            self.previews = self.preview_display.scroll('right')
+            self.selected = -1
+        elif button == 'dpad_left':
+            self.previews = self.preview_display.scroll('left')
+            self.selected = -1
 
     def start_level(self):
         """
@@ -442,6 +459,7 @@ class MenuWidget(BaseWidget) :
 
     def update(self):
         (x,y) = Window.mouse_pos
+        self.preview_display.check_triangle_highlighted(Window.mouse_pos)
 
         found_selection = False
 
