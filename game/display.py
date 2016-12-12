@@ -70,7 +70,7 @@ class Spaceship(InstructionGroup):
         #self.rect.pos = (-SPACESHIP_WIDTH/2, -SPACESHIP_HEIGHT/2)
         self.cursor_rect.pos = (NOW_X - 20 - 5, self.y-50)
         self.translate.y = self.y
-        self.rotate.angle = self.dy
+        self.rotate.angle = (self.rotate.angle + 2 * self.dy) / 2.
 
         self.set_ps_pos()
         
