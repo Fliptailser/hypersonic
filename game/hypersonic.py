@@ -18,7 +18,7 @@ from player import *
 
 from kivy.clock import Clock as kivyClock
 
-SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DaftPunk_HBFS', 'DanimalCannon_Axis']
+SONG_NAMES = [ 'DanimalCannon_Axis', 'PROTODOME_ThisIsBLUESHIFT' , 'DaftPunk_HBFS']
 
 SONG_DICT = {'DanimalCannon_Axis': 'Danimal Cannon - Axis',
              'PROTODOME_ThisIsBLUESHIFT': 'PROTODOME - This is BLUESHIFT',

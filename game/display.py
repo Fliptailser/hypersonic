@@ -172,30 +172,6 @@ class BeatLine(InstructionGroup):
         width = 3 if count == 1 else 1
         self.add(Line(width=width, points=[x, 360 - 80 - 160, x, 360 + 80 + 160]))
 
-class Laser(InstructionGroup):
-    """
-    The projectile laser that is "shot" when the user fires.
-    TODO, might just be part of the BEAM class
-    """
-
-    def __init__(self):
-        super(Laser, self).__init__()
-
-    def on_update(self, dt):
-        pass
-
-
-class Rocket(InstructionGroup):
-    """
-    Rocket object that is shot when the user fires.
-    """
-
-    def __init__(self):
-        super(Rocket, self).__init__()
-
-    def on_update(self, dt):
-        pass
-
 
 class Beam(InstructionGroup):
     """
@@ -257,6 +233,7 @@ class Beam(InstructionGroup):
     def on_update(self, dt):
         self.t += dt
         return self.t < 0.1
+
 
 class Target(InstructionGroup):
     """
@@ -877,7 +854,7 @@ class PreviewDisplay(InstructionGroup):
             self.labels[2-i].text = ""
 
         # add little triangles on the sides to signify being able to scroll in directions
-        if self.pointer < int(len(self.level_names)/3)*3:
+        if self.pointer < int(len(self.level_names)/3)*3 and int(len(self.level_names)/3)*3 < len(self.level_names):
             self.add(self.right_color)
             self.add(self.right_triangle)
         if self.pointer >= 3:
