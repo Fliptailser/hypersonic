@@ -829,7 +829,16 @@ class LevelMenu(InstructionGroup):
 
     def select(self, mouse_pos):
         (x, y) = mouse_pos
-        # TODO
+
+        for i, label in enumerate(self.labels):
+            (xsize, ysize) = tuple(label.text_size)
+            lx = label.x
+            ly = label.y
+            if lx - xsize/2 < x < lx + xsize/2 and ly + 10 < y < ly + ysize + 10:
+                self.selected_label = i
+                self.labels[self.selected_label].color = self.selected_color
+            else:
+                self.labels[i].color = (1,1,1,1)
 
     def appear(self):
         self.add(self.outer_rect_color)

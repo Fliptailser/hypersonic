@@ -136,7 +136,21 @@ class MainWidget(BaseWidget) :
     def touch_down(self, touch):
         # TODO figure out how to update mouse config so doesn't make the circles on right clicks
         # print touch.button
-        pass
+        if self.paused and self.ended:
+            action = self.level_end_menu.get_selected_name()
+
+            if action in ['Retry', "Fly again!"]:
+                self.level_callback(self.song_name)
+            elif action == 'Quit':
+                self.menu_callback()
+        elif self.paused:
+            action = self.pause_menu.get_selected_name()
+            if action == 'Resume':
+                self.joy_button_down(4)  # pretend start was pressed
+            elif action == 'Restart':
+                self.level_callback(self.song_name)
+            elif action == 'Quit':
+                self.menu_callback()
 
     def touch_up(self, touch):
         pass
@@ -151,15 +165,6 @@ class MainWidget(BaseWidget) :
         except:
             # ERROR: button can't be found
             return
-        """
-
-        bass powerup
-
-        3 stage spaceship health
-
-        laser bounce back at ship on miss?
-
-        """
 
         if button == 'start':
             self.audio_ctrl.toggle()
@@ -209,7 +214,6 @@ class MainWidget(BaseWidget) :
 
             if button == 'A':
                 action = self.pause_menu.get_selected_name()
-                # TODO execute action
 
                 if action == 'Resume':
                     self.joy_button_down(4)  # pretend start was pressed
@@ -284,6 +288,8 @@ class MainWidget(BaseWidget) :
                 self.player.update_position(Window.mouse_pos)
                 
             self.player.on_update()
+        elif not self.ended and self.started:
+            self.pause_menu.select(Window.mouse_pos)
 
         if self.game_display.reach_end(self.audio_ctrl.get_time()) and not self.ended:
             # player won
