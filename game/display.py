@@ -817,7 +817,7 @@ class PreviewDisplay(InstructionGroup):
         Changes the 3 displayed songs and returns the previews
         """
         if direction == 'right':
-            self.pointer += 3            
+            self.pointer += 3
         elif direction == 'left':
             self.pointer -= 3
         else:
@@ -833,13 +833,12 @@ class PreviewDisplay(InstructionGroup):
         """
         Actually creates the LevelPreviews
         """
-        if self.pointer > int(len(self.level_names)/3)*3:
-            self.pointer = int(len(self.level_names)/3)*3
+        if self.pointer > int(len(self.level_names)/3)*3 or (self.pointer > int(len(self.level_names)/3-1)*3 and len(self.level_names) % 3 == 0):
+            self.pointer = int(len(self.level_names)/3-1)*3 if len(self.level_names) % 3 == 0 else int(len(self.level_names)/3)*3
             return
         elif self.pointer < 0:
             self.pointer = 0
             return
-
         self.clear()
         self.previews = []
         levels = self.level_names[self.pointer:self.pointer+3]

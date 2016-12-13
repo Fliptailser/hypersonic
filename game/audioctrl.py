@@ -21,6 +21,7 @@ class AudioController(object):
         
 
     def set_song(self, song_path, song_tempo):
+        self.mixer = Mixer()
         self.tempo_map = TempoMap(data=song_tempo)
         self.song = Song(tempo_map=self.tempo_map)
 
