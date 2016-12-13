@@ -321,6 +321,10 @@ class MainWidget(BaseWidget) :
             self.ps_top.stop()
             self.ps_bottom.stop()
             self.explosion_on = True
+            # remove the beams
+            self.game_display.release_beams('top')
+            self.game_display.release_beams('mid')
+            self.game_display.release_beams('bot')
 
         if self.ended and not self.controller_found:
             self.level_end_menu.select(Window.mouse_pos)
@@ -395,7 +399,7 @@ class MenuWidget(BaseWidget) :
             pass        
 
         self.selected += 1
-        if self.selected == len(self.previews):
+        if self.selected == 3:
             self.selected = -1
 
         if self.selected != -1:

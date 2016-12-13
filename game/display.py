@@ -733,6 +733,7 @@ class GameDisplay(InstructionGroup):
             if beam.lane == lane:
                 self.remove(beam)
                 self.beams.remove(beam)
+
     def reach_end(self, time):
         tick = self.tempo_map.time_to_tick(time)
         return tick >= self.ending_tick + 1000            
