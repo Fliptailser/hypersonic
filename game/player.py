@@ -63,7 +63,7 @@ class Player(object):
         
         time = self.audio_ctrl.get_time()
         
-        slop_times = (self.audio_ctrl.time_to_tick(time-0.1), self.audio_ctrl.time_to_tick(time+0.1))
+        slop_times = (self.audio_ctrl.time_to_tick(time-0.15), self.audio_ctrl.time_to_tick(time+0.05))
         possible_hits = self.display.get_targets_in_range(slop_times[0], slop_times[1])
         hit = False
   
@@ -119,7 +119,7 @@ class Player(object):
         
         self.display.check_signals(time)
         
-        miss_window = (self.audio_ctrl.time_to_tick(time-0.2), self.audio_ctrl.time_to_tick(time-0.1))
+        miss_window = (self.audio_ctrl.time_to_tick(time-0.25), self.audio_ctrl.time_to_tick(time-0.15))
         possible_misses = self.display.get_targets_in_range(miss_window[0], miss_window[1])
         # check for targets that have missed the slop window
         for target in possible_misses:
@@ -130,27 +130,7 @@ class Player(object):
             self.display.miss_target(target)
             self.target_count += 1
             
-        possible_misses_holds = self.display.get_passive_targets_in_range(miss_window[0], miss_window[1])
-        # check for hold stuff that has missed the slop window
-        for target in possible_misses_holds:
-            # TODO: send up penalties for missing
-            if self.display.current_holds[target.lane] is not None:
-                keycode = self.display.current_holds[target.lane]
-                self.release(target.lane, keycode)
-                self.lose_health(amt=1)
-                self.streak = 0
-                self.streak_multiplier = 1
-                self.total_hit -= 1
-            self.display.miss_target(target)
-            
-        possible_misses_traces = self.display.get_traces_in_range(miss_window[0], miss_window[1])
-        # check for traces that have missed the slop window
-        for trace in possible_misses_traces:
-            self.lose_health(amt=1)
-            self.display.miss_target(trace)
-            self.trace_count += 1
-            
-        hold_window = (self.audio_ctrl.time_to_tick(time - 0.1), self.audio_ctrl.time_to_tick(time - 0.05))
+        hold_window = (self.audio_ctrl.time_to_tick(time - 0.15), self.audio_ctrl.time_to_tick(time - 0.10))
         # check the timing window for held notes
         for hold in self.display.get_passive_targets_in_range(hold_window[0], hold_window[1]):
             if self.display.current_holds[hold.lane] != None:
@@ -168,5 +148,26 @@ class Player(object):
                 self.score += points * self.streak_multiplier
                 self.traces_hit += 1
                 self.trace_count += 1
+            
+        possible_misses_holds = self.display.get_passive_targets_in_range(miss_window[0], miss_window[1])
+        # check for hold stuff that has missed the slop window
+        for target in possible_misses_holds:
+            if self.display.current_holds[target.lane] is not None:
+                keycode = self.display.current_holds[target.lane]
+                self.release(target.lane, keycode)
+                self.lose_health(amt=1)
+                self.streak = 0
+                self.streak_multiplier = 1
+                self.total_hit -= 1
+            self.display.miss_target(target)
+            
+        possible_misses_traces = self.display.get_traces_in_range(miss_window[0], miss_window[1])
+        # check for traces that have missed the slop window
+        for trace in possible_misses_traces:
+            self.lose_health(amt=1)
+            self.display.miss_target(trace)
+            self.trace_count += 1
+            
+        
             
             

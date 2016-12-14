@@ -13,6 +13,7 @@ WINDOW_SIZE = (1280, 720)
 
 # 0.25
 PIXELS_PER_TICK = 0.3
+DRAW_CALIBRATION = 50
 
 class Spaceship(InstructionGroup):
     """
@@ -40,7 +41,7 @@ class Spaceship(InstructionGroup):
         self.add(PopMatrix())
         
         self.add(Color(rgb=[1.0, 1.0, 1.0]))
-        self.cursor_rect = Rectangle(pos=[NOW_X - 20 - 5, self.y - 50], size=[10, 100])
+        self.cursor_rect = Rectangle(pos=[NOW_X - 5, self.y - 50], size=[10, 100])
         self.add(self.cursor_rect)
 
         # particle system stuffs
@@ -68,7 +69,7 @@ class Spaceship(InstructionGroup):
             self.y = self.min_y
 
         #self.rect.pos = (-SPACESHIP_WIDTH/2, -SPACESHIP_HEIGHT/2)
-        self.cursor_rect.pos = (NOW_X - 20 - 5, self.y-50)
+        self.cursor_rect.pos = (NOW_X - 5, self.y-50)
         self.translate.y = self.y
         self.rotate.angle = (self.rotate.angle + 2 * self.dy) / 2.
 
@@ -154,7 +155,7 @@ class NowPillar(InstructionGroup):
     def __init__(self):
         super(NowPillar, self).__init__()
         self.add(Color(rgb=[0.4, 0.2, 0.2]))
-        self.add(Line(width=4, points=[NOW_X - 20, 360 - 80 - 160, NOW_X - 20, 360 + 80 + 160]))
+        self.add(Line(width=4, points=[NOW_X, 360 - 80 - 160, NOW_X, 360 + 80 + 160]))
 
     def on_update(self, dt):
         pass
@@ -168,7 +169,7 @@ class BeatLine(InstructionGroup):
         super(BeatLine, self).__init__()
 
         self.add(Color(rgb=[0.35, 0.35, 0.35], a=0.8))
-        x = NOW_X + tick * PIXELS_PER_TICK
+        x = NOW_X + DRAW_CALIBRATION + tick * PIXELS_PER_TICK
         width = 3 if count == 1 else 1
         self.add(Line(width=width, points=[x, 360 - 80 - 160, x, 360 + 80 + 160]))
 
@@ -196,7 +197,7 @@ class Beam(InstructionGroup):
         if hit:
             width = 3
         
-        self.blue_line = Line(points=[ship_x, ship_y, NOW_X - 20, self.now_aim_y], width=width)
+        self.blue_line = Line(points=[ship_x, ship_y, NOW_X, self.now_aim_y], width=width)
         self.add(self.blue_line)
         self.t = 0
 
@@ -227,7 +228,7 @@ class Beam(InstructionGroup):
 
     def update_points(self, ship_y):
         self.ship_y = ship_y
-        self.blue_line.points = [self.ship_x, self.ship_y, NOW_X - 20, self.now_aim_y]
+        self.blue_line.points = [self.ship_x, self.ship_y, NOW_X, self.now_aim_y]
         #self.red_line.points = [self.ship_x, ship_y, RET_X, self.reticle_y]
 
     def on_update(self, dt):
@@ -245,7 +246,7 @@ class Target(InstructionGroup):
         super(Target, self).__init__()
         self.lane = lane
         self.tick = tick
-        self.x = NOW_X + tick * PIXELS_PER_TICK
+        self.x = NOW_X + DRAW_CALIBRATION + tick * PIXELS_PER_TICK
         self.y = self.vertical_pos_from_lane(lane)
         self.is_hit = False
 
@@ -364,6 +365,7 @@ class Hold(Target):
         
         self.width = 80 * PIXELS_PER_TICK
         self.height = 20
+        #self.x -= 10
         self.y -= self.height/2
         
         self.flare_color = Color(rgb=[0.2, 0.2, 0.6])
@@ -500,7 +502,7 @@ class Gate(InstructionGroup):
         super(Gate, self).__init__()
         self.pos = pos
         self.tick = tick
-        self.x = NOW_X + tick * PIXELS_PER_TICK
+        self.x = NOW_X + DRAW_CALIBRATION + tick * PIXELS_PER_TICK
         self.y = 360 - 240 + 480 * (pos)
         self.is_hit = False
 
@@ -548,7 +550,7 @@ class Trail(InstructionGroup):
         super(Trail, self).__init__()
         self.pos = pos
         self.tick = tick
-        self.x = NOW_X + tick * PIXELS_PER_TICK
+        self.x = NOW_X + DRAW_CALIBRATION + tick * PIXELS_PER_TICK
         self.y = 360 - 240 + 480 * (pos)
         self.is_hit = False
         
