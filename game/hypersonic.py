@@ -459,7 +459,7 @@ class MenuWidget(BaseWidget) :
         Starts the selected level
         """
         if 0 <= self.selected < len(self.levels):
-            self.callback(self.levels[self.selected])
+            self.callback(self.previews[self.selected].level_name)
 
     def update(self):
         (x,y) = Window.mouse_pos
