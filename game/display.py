@@ -817,11 +817,12 @@ class GameDisplay(InstructionGroup):
 
 class PreviewDisplay(InstructionGroup):
 
-    def __init__(self, level_names, labels, name_dict):
+    def __init__(self, level_names, labels, name_dict, scores):
         super(PreviewDisplay, self).__init__()
         self.level_names = level_names
         self.labels = labels
         self.name_dict = name_dict
+        self.scores = scores
 
         self.pointer = 0
         self.previews = []
@@ -869,7 +870,7 @@ class PreviewDisplay(InstructionGroup):
         levels = self.level_names[self.pointer:self.pointer+3]
 
         for i, level in enumerate(levels):
-            preview = LevelPreview(self.x, self.y-i*165, level, self.labels[i], self.name_dict)
+            preview = LevelPreview(self.x, self.y-i*165, level, self.labels[i], self.name_dict, self.scores[level])
             self.add(preview)
             self.previews.append(preview)
 
@@ -898,15 +899,20 @@ class PreviewDisplay(InstructionGroup):
         self.left_color.rgb = self.right_color.rgb = (1,1,1)
         return "none"
 
+    def update_highscores(self, scores):
+        self.scores = scores
+        self.set_previews()
+
 
 class LevelPreview(InstructionGroup):
 
-    def __init__(self, x, y, level_name, label, name_dict):
+    def __init__(self, x, y, level_name, label, name_dict, score):
         super(LevelPreview, self).__init__()
 
         self.x = x
         self.y = y
         self.level_name = level_name
+        self.score = score
 
         try:
             self.read_name = name_dict[level_name]
@@ -939,7 +945,7 @@ class LevelPreview(InstructionGroup):
 
         self.label = label
         self.label.text_size = (self.width - 250, self.height - 70)
-        self.label.text = self.read_name
+        self.label.text = self.read_name + "\nHighscore: " + str(self.score)
         self.label.x = self.x + 330
         self.label.y = self.y + 50
 
@@ -1049,7 +1055,7 @@ class LevelEndMenu(LevelMenu):
         self.score_label.y = 350
         self.score_label.text_size = (400, 400)
 
-    def appear(self):
+    def appear(self, new_highscore):
         success = self.player.health > 0
         super(LevelEndMenu, self).appear()
         self.labels[0].text = "Retry" if not success else "Fly again!"
@@ -1059,6 +1065,10 @@ class LevelEndMenu(LevelMenu):
 
         self.score_label.text = ("Score: %d\n\nMax Hit Streak: %d\n\n" +
                 "Hit Accuracy: %d%%\n\nTrace Accuracy: %d%%\n\n") % (stats['score'], stats['streak'], stats['hit'], stats['trace'])
+
+        if new_highscore:
+            self.score_label.text = "NEW HIGHSCORE!!!\n\n" + self.score_label.text
+            self.score_label.y -= 60
 
 
 

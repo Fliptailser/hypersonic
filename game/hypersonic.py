@@ -26,13 +26,15 @@ SONG_DICT = {'DanimalCannon_Behemoth': 'Danimal Cannon - Behemoth', 'DanimalCann
 
 
 class MainWidget(BaseWidget) :
-    def __init__(self, song_name, audio_ctrl, level_callback, menu_callback):
+    def __init__(self, song_name, audio_ctrl, highscore, level_callback, menu_callback, score_callback):
         super(MainWidget, self).__init__()
 
         self.song_name = song_name
         self.audio_ctrl = audio_ctrl
+        self.highscore = highscore
         self.level_callback = level_callback
         self.menu_callback = menu_callback
+        self.score_callback = score_callback
         
         print('Loading MIDI...')
         midi_lists = parse.parse_MIDI_chart(song_name)
@@ -307,13 +309,15 @@ class MainWidget(BaseWidget) :
 
         if self.game_display.reach_end(self.audio_ctrl.get_time()) and not self.ended:
             # player won
-            self.level_end_menu.appear()
+            new_highscore = self.score_callback(self.song_name, self.player.score)
+            self.level_end_menu.appear(new_highscore)
             self.paused = True
             self.ended = True
 
         if not self.ended and self.player.health == 0:
             # player died
-            self.level_end_menu.appear()
+            new_highscore = self.score_callback(self.song_name, self.player.score)
+            self.level_end_menu.appear(new_highscore)
             self.paused = True
             self.ended = True
             self.game_display.remove(self.game_display.ship)
@@ -331,20 +335,21 @@ class MainWidget(BaseWidget) :
 
 
 class MenuWidget(BaseWidget) :
-    def __init__(self, callback):
+    def __init__(self, callback, scores):
         super(MenuWidget, self).__init__()
         self.main_label = Label(text = "Hypersonic", halign='right', font_size=100, x = Window.width/2, y = 550)
         self.add_widget(self.main_label)
 
         self.delay = 10
         self.callback = callback
+        self.scores = scores
 
         self.levels = SONG_NAMES
         self.display_objects = AnimGroup()
         
         labels = [Label(text="", font_size='30sp', halign='left') for i in xrange(3)]
 
-        self.preview_display = display.PreviewDisplay(self.levels, labels, SONG_DICT)
+        self.preview_display = display.PreviewDisplay(self.levels, labels, SONG_DICT, self.scores)
         self.display_objects.add(self.preview_display)
 
         self.previews = self.preview_display.get_previews()
@@ -360,6 +365,13 @@ class MenuWidget(BaseWidget) :
                              4: "start", 5: "back", 8: "LB", 9: "RB",
                              11: "A", 12: "B", 13: "X", 14: "Y",
                              7: "right_joy", 6: "left_joy"}
+
+    def update_highscores(self, scores):
+        """
+        Updates the highscores
+        """
+        self.scores = scores
+        self.preview_display.update_highscores(scores)
 
     def joy_axis(self, axis_id, value):
         """
@@ -399,7 +411,7 @@ class MenuWidget(BaseWidget) :
             pass        
 
         self.selected += 1
-        if self.selected == 3:
+        if self.selected == len(self.previews):
             self.selected = -1
 
         if self.selected != -1:
@@ -414,7 +426,7 @@ class MenuWidget(BaseWidget) :
 
         self.selected -= 1
         if self.selected == -2:
-            self.selected = len(self.levels)-1
+            self.selected = len(self.previews)-1
 
         if self.selected != -1:
             self.previews[self.selected].highlight()
@@ -481,6 +493,10 @@ class MenuWidget(BaseWidget) :
         if self.delay > 100:
             self.delay = 15 # keep small number so doesn't take up too much memory
 
+        # make sure no selected errors
+        if not (-1 <= self.selected < len(self.previews)):
+            self.selected = -1  # just unselect if problem...
+
 
 class FatherWidget(BaseWidget):
     """
@@ -488,7 +504,10 @@ class FatherWidget(BaseWidget):
     """
     def __init__(self):
         super(FatherWidget, self).__init__()
-        self.menu = MenuWidget(self.start_new_level)
+
+        self.scores = read_highscores()
+
+        self.menu = MenuWidget(self.start_new_level, self.scores)
         self.add_widget(self.menu)
         self.current_widget = self.menu
 
@@ -546,13 +565,46 @@ class FatherWidget(BaseWidget):
 
     def start_new_level(self, song_name):
         self.remove_widget(self.current_widget)
-        self.current_widget = MainWidget(song_name, self.audio_ctrl, self.start_new_level, self.return_to_menu)
+        self.current_widget = MainWidget(song_name, self.audio_ctrl, self.scores[song_name],
+                                         self.start_new_level, self.return_to_menu, self.check_highscore)
         self.add_widget(self.current_widget)
 
     def return_to_menu(self):
         self.remove_widget(self.current_widget)
         self.current_widget = self.menu
         self.add_widget(self.current_widget)
+
+    def check_highscore(self, song, score):
+        if self.scores[song] < score:
+            self.scores[song] = score
+            self.menu.update_highscores(self.scores)
+            return True
+        return False
+
+    def on_close(self):
+        """
+        Update highscores.txt when the widget closes
+        """
+        write_highscores(self.scores)
+
+
+def read_highscores():
+    scores = {}
+    with open('highscores.txt', 'r') as f:
+        for line in f:
+            try:
+                line = line.split()
+                name, score = line[0], int(line[1])
+                if name in scores and score > scores[name] or name not in scores:
+                    scores[name] = score
+            except:
+                pass
+    return scores
+
+def write_highscores(scores):
+    with open('highscores.txt', 'w') as f:
+        for song, score in scores.iteritems():
+            f.write(song + " " + str(score) + "\n")
 
 
 Window.size = (1280, 720)
