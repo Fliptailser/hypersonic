@@ -113,15 +113,15 @@ def parse_MIDI_chart(song_name):
     # Get tempo data and create data for tempo mapping
     t = 0
     ticks = 0
-    ticks_per_beat = 960
-    sec_per_beat = 0
+    ticks_per_beat = 960.0
+    sec_per_beat = 0.0
     for message in mid.tracks[0]:
         ticks += message.time
         # sec = ticks / (ticks per beat) * (seconds per beat)
         t += 1.0 * message.time / ticks_per_beat * sec_per_beat
         if message.type == 'set_tempo':
             # (sec/beat) =  (microseconds/beat) / (microseconds/sec)
-            sec_per_beat = 1.0 * message.tempo / 1000000
+            sec_per_beat = 1.0 * message.tempo / 1000000.0
             structs['tempo'].append((t, ticks))
                 
     ticks = 0
