@@ -1,4 +1,4 @@
-DaftPunk_HBFS 0
-DanimalCannon_Behemoth 100
+DaftPunk_HBFS 94300
+DanimalCannon_Behemoth 182530
 PROTODOME_ThisIsBLUESHIFT 98690
-DanimalCannon_Axis 100
+DanimalCannon_Axis 397670

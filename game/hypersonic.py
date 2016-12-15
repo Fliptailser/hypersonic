@@ -565,6 +565,8 @@ class FatherWidget(BaseWidget):
 
     def start_new_level(self, song_name):
         self.remove_widget(self.current_widget)
+        if self.current_widget != self.menu:
+            del self.current_widget
         self.current_widget = MainWidget(song_name, self.audio_ctrl, self.scores[song_name],
                                          self.start_new_level, self.return_to_menu, self.check_highscore)
         self.add_widget(self.current_widget)
